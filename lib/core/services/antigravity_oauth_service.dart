@@ -226,19 +226,28 @@ class AntigravityOAuthService {
       onUrlReady(authUrl);
     }
 
-    // 3. Launch browser directly without blocking on canLaunchUrl
+    // 3. Launch browser with intelligent multi-mode fallback (external -> in-app custom tabs -> default)
     try {
       final launched = await launchUrl(
         authUrl,
         mode: LaunchMode.externalApplication,
       );
       if (!launched) {
-        await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+        final launchedInApp = await launchUrl(
+          authUrl,
+          mode: LaunchMode.inAppBrowserView,
+        );
+        if (!launchedInApp) {
+          await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+        }
       }
     } catch (e) {
-      debugPrint('Launch external failed: $e, trying platformDefault');
+      debugPrint('Launch external failed: $e, trying inAppBrowserView & platformDefault');
       try {
-        await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+        final inApp = await launchUrl(authUrl, mode: LaunchMode.inAppBrowserView);
+        if (!inApp) {
+          await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+        }
       } catch (e2) {
         debugPrint('Platform default launch also failed: $e2');
         if (Platform.isWindows) {

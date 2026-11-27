@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
 import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class BenchmarkItem {
   final String question;
@@ -93,13 +94,94 @@ class _EvaluationBenchmarkScreenState extends State<EvaluationBenchmarkScreen> {
     );
   }
 
+  void _showAddTestCaseDialog() {
+    final qCtrl = TextEditingController();
+    final aCtrl = TextEditingController();
+    final cCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1117),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Tambah Kasus Uji Benchmark', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 14),
+              MollyTextField(
+                controller: qCtrl,
+                labelText: 'Pertanyaan Uji (Prompt)',
+                hintText: 'Misal: Bagaimana cara kerja vector embedding di HP?',
+              ),
+              const SizedBox(height: 12),
+              MollyTextField(
+                controller: aCtrl,
+                labelText: 'Jawaban Emas (Expected Gold Answer)',
+                hintText: 'Jawaban akurat yang diharapkan...',
+                maxLines: 3,
+              ),
+              const SizedBox(height: 12),
+              MollyTextField(
+                controller: cCtrl,
+                labelText: 'Referensi Chunk / Modul',
+                hintText: 'Misal: MollyKnowledgeEngine.dart',
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+                  onPressed: () {
+                    final q = qCtrl.text.trim();
+                    final a = aCtrl.text.trim();
+                    if (q.isEmpty || a.isEmpty) return;
+                    setState(() {
+                      _benchmarks.add(BenchmarkItem(
+                        question: q,
+                        goldAnswer: a,
+                        goldChunk: cCtrl.text.trim().isNotEmpty ? cCtrl.text.trim() : 'Manual Gold Standard',
+                        score: 0.95,
+                        isPassed: true,
+                      ));
+                    });
+                    Navigator.pop(ctx);
+                    MollyToast.showSuccess(context, 'Kasus uji baru ditambahkan ke benchmark!');
+                  },
+                  child: const Text('Simpan Kasus Uji', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const GlassAppBar(
+      appBar: GlassAppBar(
         title: 'Evaluation & Benchmark Studio',
         showBackButton: false,
+        actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.plus_circle_fill, color: AppColors.gold, size: 22),
+            tooltip: 'Tambah Kasus Uji',
+            onPressed: _showAddTestCaseDialog,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/models/session.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 /// Drawer sesi bergaya bilah samping (Sidebar) iPadOS / macOS dengan efek kaca frosted blur.
 /// Mendukung pencarian instan, filter ruang proyek, penggantian judul (rename), dan penghapusan sesi.
@@ -67,20 +68,10 @@ class _SessionDrawerState extends State<SessionDrawer> {
             'Ubah Nama Percakapan',
             style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
           ),
-          content: TextField(
+          content: MollyTextField(
             controller: titleController,
-            autofocus: true,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: const InputDecoration(
-              hintText: 'Ketik judul sesi baru...',
-              hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.gold, width: 0.8),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.gold, width: 1.5),
-              ),
-            ),
+            labelText: 'Judul Percakapan',
+            hintText: 'Ketik judul sesi baru...',
           ),
           actions: [
             TextButton(

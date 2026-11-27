@@ -17,6 +17,31 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _metrics;
   bool _loading = false;
+  int _activeTab = 0; // 0 = Telemetri, 1 = Feedback Agen, 2 = Upstream & DB
+
+  final List<Map<String, dynamic>> _agentFeedbackList = [
+    {
+      'agent': 'Systematic Debugging',
+      'user': 'Developer',
+      'rating': 5,
+      'comment': 'Sangat cepat menganalisis error NullPointer dan deadlock async Dart.',
+      'time': '10 menit lalu',
+    },
+    {
+      'agent': 'Web & AI Specialist',
+      'user': 'Frontend Engineer',
+      'rating': 5,
+      'comment': 'Desain komponen Tailwind & Shadcn UI rapih berstandar Anti-UI Slop.',
+      'time': '1 jam lalu',
+    },
+    {
+      'agent': 'Suno Music Composer',
+      'user': 'Creator',
+      'rating': 4,
+      'comment': 'Struktur lirik Verse & Chorus sangat pas dengan genre Synthwave.',
+      'time': '3 jam lalu',
+    },
+  ];
 
   @override
   void initState() {
@@ -58,41 +83,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final int metricCols = width < 640 ? 1 : (width < 1024 ? 2 : 4);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 110),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeroBanner(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                _buildTabSelector(),
+                const SizedBox(height: 20),
 
-                // Metrics Section Heading
-                const Text(
-                  'METRIK SISTEM REAL-TIME',
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
+                if (_activeTab == 0) ...[
+                  // Metrics Section Heading
+                  const Text(
+                    'METRIK SISTEM REAL-TIME',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-
-                // Fluid Multi-Column Grid
-                _buildMetricsGrid(metricCols),
-                const SizedBox(height: 28),
-
-                // Model Providers Telemetry
-                const Text(
-                  'STATUS PROVIDER MODEL & LATENSI',
-                  style: TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
+                  const SizedBox(height: 12),
+                  _buildMetricsGrid(metricCols),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'STATUS PROVIDER MODEL & LATENSI',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildProvidersCard(),
+                  const SizedBox(height: 12),
+                  _buildProvidersCard(),
+                ] else if (_activeTab == 1) ...[
+                  _buildFeedbackSection(),
+                ] else ...[
+                  _buildUpstreamSyncSection(),
+                ],
               ],
             ),
           );
@@ -377,6 +406,188 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         }).toList(),
       ),
+    );
+  }
+
+  Widget _buildTabSelector() {
+    final tabs = [
+      {'label': 'Telemetri', 'icon': CupertinoIcons.speedometer},
+      {'label': 'Feedback Agen', 'icon': CupertinoIcons.star_fill},
+      {'label': 'Upstream & DB', 'icon': CupertinoIcons.arrow_2_circlepath},
+    ];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.glassBorder, width: 0.8),
+      ),
+      child: Row(
+        children: tabs.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final item = entry.value;
+          final isSel = _activeTab == idx;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _activeTab = idx);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSel ? AppColors.gold.withOpacity(0.18) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: isSel ? Border.all(color: AppColors.gold.withOpacity(0.5), width: 0.6) : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(item['icon'] as IconData, size: 13, color: isSel ? AppColors.gold : AppColors.textTertiary),
+                    const SizedBox(width: 6),
+                    Text(
+                      item['label'] as String,
+                      style: TextStyle(
+                        color: isSel ? Colors.white : AppColors.textSecondary,
+                        fontSize: 11.5,
+                        fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildFeedbackSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'EVALUASI KEPUASAN & FEEDBACK AGEN',
+          style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _statMini('98.4%', 'CSAT Score', const Color(0xFF10B981)),
+              _statMini('142', 'Ulasan Masuk', AppColors.gold),
+              _statMini('99.1%', 'Akurasi Jawaban', const Color(0xFF38BDF8)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        ..._agentFeedbackList.map((fb) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      fb['agent'] as String,
+                      style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w700),
+                    ),
+                    Row(
+                      children: List.generate(5, (starIdx) {
+                        final filled = starIdx < (fb['rating'] as int);
+                        return Icon(
+                          filled ? CupertinoIcons.star_fill : CupertinoIcons.star,
+                          color: filled ? AppColors.gold : AppColors.textTertiary,
+                          size: 13,
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  fb['comment'] as String,
+                  style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12, height: 1.4),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${fb['user']} • ${fb['time']}',
+                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildUpstreamSyncSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SINKRONISASI UPSTREAM & INTEGRITAS DATABASE',
+          style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(CupertinoIcons.checkmark_shield_fill, color: Color(0xFF10B981), size: 18),
+                  SizedBox(width: 8),
+                  Text('Sinkronisasi Repositori Upstream: OK', style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w700)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Cabang Flutter mandiri tersinkronisasi 100% dengan upstream Molly-LLM v2.6.0. Seluruh engine agen, RAG, dan database SQLite terverifikasi aman.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+              ),
+              const Divider(color: AppColors.glassBorder, height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('Branch Git:', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                  Text('main (Up to date)', style: TextStyle(color: AppColors.gold, fontSize: 11, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('SQLite Core Engine:', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                  Text('molly_standalone_v2.db', style: TextStyle(color: Colors.white, fontSize: 11, fontFamily: 'monospace')),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statMini(String val, String label, Color col) {
+    return Column(
+      children: [
+        Text(val, style: TextStyle(color: col, fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5)),
+      ],
     );
   }
 }

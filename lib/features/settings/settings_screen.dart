@@ -181,7 +181,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showOAuthLoginSheet(Uri authUrl) {
     final manualCodeCtrl = TextEditingController();
-    bool showManual = false;
 
     showModalBottomSheet(
       context: context,
@@ -200,135 +199,136 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.8),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.gold.withOpacity(0.15),
-                      border: Border.all(color: AppColors.gold, width: 1.5),
-                    ),
-                    child: const Center(
-                      child: Icon(CupertinoIcons.lock_shield_fill, color: AppColors.gold, size: 26),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Otentikasi Google OAuth Antigravity',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Browser login telah dibuka secara otomatis. Silakan pilih akun Google Anda untuk mengizinkan akses model Gemini 3.8 & Antigravity.',
-                    style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Tombol Aksi Utama
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(CupertinoIcons.arrow_up_right_square, size: 16, color: AppColors.gold),
-                          label: const Text('Buka Ulang di Browser', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.bold)),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: () async {
-                            HapticFeedback.lightImpact();
-                            try {
-                              await launchUrl(authUrl, mode: LaunchMode.externalApplication);
-                            } catch (_) {
-                              await launchUrl(authUrl, mode: LaunchMode.platformDefault);
-                            }
-                          },
-                        ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.gold.withOpacity(0.15),
+                        border: Border.all(color: AppColors.gold, width: 1.5),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 16, color: Colors.white70),
-                          label: const Text('Salin Tautan Login', style: TextStyle(color: Colors.white, fontSize: 12)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.glassBorder),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: authUrl.toString()));
-                            MollyToast.showSuccess(context, 'Tautan login Google berhasil disalin!');
-                          },
-                        ),
+                      child: const Center(
+                        child: Icon(CupertinoIcons.lock_shield_fill, color: AppColors.gold, size: 26),
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Pilihan Manual Code jika redirect tidak otomatis
-                  if (!showManual)
-                    TextButton(
-                      onPressed: () => setModalState(() => showManual = true),
-                      child: const Text('Ada kendala? Masukkan Kode Otentikasi Manual ▾', style: TextStyle(color: AppColors.gold, fontSize: 11)),
-                    )
-                  else ...[
-                    const Divider(color: AppColors.glassBorder, height: 20),
+                    ),
+                    const SizedBox(height: 14),
                     const Text(
-                      'Tempelkan URL callback atau Kode OAuth dari browser:',
-                      style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                      'Otentikasi Google OAuth Antigravity',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Pilih akun Google Anda untuk mengizinkan akses model Gemini 3.8 & Antigravity.',
+                      style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Tombol Aksi Buka Browser Langsung
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(CupertinoIcons.arrow_up_right_square_fill, size: 18, color: Colors.black),
+                        label: const Text(
+                          'Buka Browser Login Google Sekarang',
+                          style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.gold,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
+                        ),
+                        onPressed: () async {
+                          HapticFeedback.mediumImpact();
+                          try {
+                            final ok = await launchUrl(authUrl, mode: LaunchMode.externalApplication);
+                            if (!ok) {
+                              final inApp = await launchUrl(authUrl, mode: LaunchMode.inAppBrowserView);
+                              if (!inApp) await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+                            }
+                          } catch (_) {
+                            await launchUrl(authUrl, mode: LaunchMode.inAppBrowserView);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Tombol Salin Tautan
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 15, color: Colors.white70),
+                        label: const Text('Salin Tautan Login Google', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.glassBorder),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: authUrl.toString()));
+                          MollyToast.showSuccess(context, 'Tautan login berhasil disalin!');
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    const Divider(color: AppColors.glassBorder, height: 1),
+                    const SizedBox(height: 14),
+
+                    // Pilihan Verifikasi Kode Manual
+                    MollyTextField(
+                      controller: manualCodeCtrl,
+                      labelText: 'Kode OAuth / URL Callback dari Browser',
+                      hintText: 'Tempel URL atau code=... dari address bar',
+                      suffixIcon: IconButton(
+                        icon: const Icon(CupertinoIcons.doc_on_clipboard_fill, color: AppColors.gold, size: 18),
+                        tooltip: 'Tempel dari Clipboard',
+                        onPressed: () async {
+                          final data = await Clipboard.getData(Clipboard.kTextPlain);
+                          if (data?.text != null && data!.text!.isNotEmpty) {
+                            manualCodeCtrl.text = data.text!;
+                            _oauth.submitManualCode(data.text!);
+                          }
+                        },
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: manualCodeCtrl,
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                            decoration: InputDecoration(
-                              hintText: 'Tempel code=... atau URL lengkap di sini',
-                              hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                              filled: true,
-                              fillColor: AppColors.surfaceElevated,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            ),
-                          ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (manualCodeCtrl.text.trim().isNotEmpty) {
+                            _oauth.submitManualCode(manualCodeCtrl.text.trim());
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceElevated,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          side: const BorderSide(color: AppColors.gold, width: 0.8),
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (manualCodeCtrl.text.trim().isNotEmpty) {
-                              _oauth.submitManualCode(manualCodeCtrl.text.trim());
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.gold,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Kirim', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
-                        ),
-                      ],
+                        child: const Text('Verifikasi Kode Manual', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+                    TextButton(
+                      onPressed: () {
+                        _oauth.cancelOAuth();
+                        Navigator.pop(ctx);
+                        setState(() => _isOAuthLoading = false);
+                      },
+                      child: const Text('Batalkan & Tutup', style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w600)),
                     ),
                   ],
-
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () {
-                      _oauth.cancelOAuth();
-                      Navigator.pop(ctx);
-                      setState(() => _isOAuthLoading = false);
-                    },
-                    child: const Text('Batalkan Login', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-                  ),
-                ],
+                ),
               ),
             ),
           );

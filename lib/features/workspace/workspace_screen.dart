@@ -72,23 +72,18 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                MollyTextField(
                   controller: nameCtrl,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Berkas (misal: main.dart atau model.py)',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
+                  labelText: 'Nama Berkas',
+                  hintText: 'Misal: main.dart atau model.py',
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                MollyTextField(
                   controller: contentCtrl,
-                  maxLines: 5,
+                  labelText: 'Isi Kode / Dokumen Teks',
+                  hintText: 'Tulis atau tempelkan kode di sini...',
+                  maxLines: 6,
                   style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'monospace'),
-                  decoration: const InputDecoration(
-                    labelText: 'Isi Kode / Teks...',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
