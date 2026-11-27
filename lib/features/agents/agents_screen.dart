@@ -362,7 +362,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
     );
 
     if (confirm == true) {
-      await _db.deleteAgent(agent.id);
+      await MollyLocalDatabase.instance.deleteAgent(agent.id);
       await _loadAgents();
       if (mounted) {
         MollyToast.showSuccess(context, 'Agen "${agent.name}" berhasil dihapus dari SQLite.');

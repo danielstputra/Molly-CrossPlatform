@@ -663,7 +663,7 @@ class _JobsScreenState extends State<JobsScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.glassBorder)),
               child: SelectableText(
-                tool.parameters.isNotEmpty ? tool.parameters : '{\n  "type": "object",\n  "properties": {}\n}',
+                tool.parameters.isNotEmpty ? tool.parameters.toString() : '{\n  "type": "object",\n  "properties": {}\n}',
                 style: const TextStyle(color: Color(0xFF94A3B8), fontFamily: 'monospace', fontSize: 11.5),
               ),
             ),

@@ -214,7 +214,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                 margin: const EdgeInsets.only(bottom: 10),
                 decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
                 child: InkWell(
-                  onTap: () => _previewFile(name, content),
+                  onTap: () => _previewFile(id, name, content),
                   borderRadius: BorderRadius.circular(16),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -267,7 +267,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     );
   }
 
-  void _showRenameDialog(String currentName, String content) {
+  void _showRenameDialog(String id, String currentName, String content) {
     final renameCtrl = TextEditingController(text: currentName);
     showDialog(
       context: context,
@@ -287,7 +287,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             onPressed: () async {
               final newName = renameCtrl.text.trim();
               if (newName.isNotEmpty && newName != currentName) {
-                await _workspace.deleteFile(fileName: currentName);
+                await _workspace.deleteFile(id);
                 await _workspace.createFile(fileName: newName, content: content);
                 Navigator.pop(ctx);
                 _loadLocalFiles();
@@ -304,7 +304,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     );
   }
 
-  void _previewFile(String name, String content) {
+  void _previewFile(String id, String name, String content) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -346,7 +346,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       label: const Text('Ubah Nama', style: TextStyle(color: AppColors.gold, fontSize: 12)),
                       onPressed: () {
                         Navigator.pop(ctx);
-                        _showRenameDialog(name, content);
+                        _showRenameDialog(id, name, content);
                       },
                     ),
                     IconButton(
