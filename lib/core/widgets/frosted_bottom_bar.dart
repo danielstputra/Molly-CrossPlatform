@@ -31,23 +31,28 @@ class FrostedBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-      height: 64,
+      margin: EdgeInsets.only(
+        left: 14,
+        right: 14,
+        bottom: bottomInset > 0 ? bottomInset + 6 : 14,
+      ),
+      height: 60,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surface.withOpacity(0.75),
-              borderRadius: BorderRadius.circular(32),
+              color: AppColors.surface.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(30),
               border: Border.all(color: AppColors.glassBorder, width: 0.8),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.4),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -72,7 +77,7 @@ class FrostedBottomBar extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.gold.withOpacity(0.16) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
@@ -85,16 +90,16 @@ class FrostedBottomBar extends StatelessWidget {
           children: [
             Icon(
               item.icon,
-              size: 19,
+              size: 18,
               color: isSelected ? AppColors.gold : AppColors.textTertiary,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 5),
               Text(
                 item.label,
                 style: const TextStyle(
                   color: AppColors.gold,
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.2,
                 ),

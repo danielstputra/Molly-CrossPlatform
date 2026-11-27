@@ -58,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final int metricCols = width < 640 ? 1 : (width < 1024 ? 2 : 4);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 140),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

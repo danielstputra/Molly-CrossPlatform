@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/models/agent_preset.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/frosted_bottom_bar.dart';
@@ -26,12 +27,20 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
+  AgentPreset? _selectedAgent;
 
-  late final List<Widget> _screens = [
-    const ChatScreen(),
+  List<Widget> get _screens => [
+    ChatScreen(
+      key: ValueKey(_selectedAgent?.id ?? 'default-chat'),
+      onOpenModulePicker: _showMobileMoreSheet,
+      initialAgent: _selectedAgent,
+    ),
     AgentsScreen(
       onSelectAgent: (agent) {
-        setState(() => _currentIndex = 0);
+        setState(() {
+          _selectedAgent = agent;
+          _currentIndex = 0;
+        });
       },
     ),
     const CodeStudioScreen(),
@@ -146,7 +155,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             index: _currentIndex,
             children: _screens,
           ),
-          bottomNavigationBar: isKeyboardOpen
+          bottomNavigationBar: (_currentIndex == 0 || isKeyboardOpen)
               ? null
               : FrostedBottomBar(
                   currentIndex: _currentIndex >= 4 ? 4 : _currentIndex,

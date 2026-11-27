@@ -256,7 +256,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
 
   Widget _buildFileList() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 140),
       itemCount: _localFiles.length,
       itemBuilder: (context, index) {
         final file = _localFiles[index];
@@ -664,7 +664,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
 
   Widget _buildWorktreesView() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
       children: [
         // Create Branch Bar
         Container(

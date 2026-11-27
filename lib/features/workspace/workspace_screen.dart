@@ -270,7 +270,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.7,
+        height: MediaQuery.of(ctx).size.height * 0.75,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: const Color(0xFF0F1117),
@@ -283,8 +283,38 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
-                IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(CupertinoIcons.pencil, size: 14, color: AppColors.gold),
+                      label: const Text('Edit', style: TextStyle(color: AppColors.gold, fontSize: 12)),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showEditFileDialog(name, content);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(CupertinoIcons.doc_on_clipboard, color: AppColors.textTertiary, size: 16),
+                      tooltip: 'Salin Isi',
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: content));
+                        HapticFeedback.lightImpact();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Isi berkas berhasil disalin!'), behavior: SnackBarBehavior.floating),
+                        );
+                      },
+                    ),
+                    IconButton(icon: const Icon(Icons.close, color: Colors.white, size: 20), onPressed: () => Navigator.pop(ctx)),
+                  ],
+                ),
               ],
             ),
             const Divider(color: AppColors.glassBorder),
@@ -298,6 +328,70 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditFileDialog(String name, String content) {
+    final editCtrl = TextEditingController(text: content);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          height: MediaQuery.of(ctx).size.height * 0.75,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1117),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Edit: $name', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _workspace.saveFile(name, editCtrl.text);
+                      if (mounted) {
+                        Navigator.pop(ctx);
+                        _loadLocalFiles();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Perubahan "$name" berhasil disimpan di SQLite lokal!'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Simpan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ],
+              ),
+              const Divider(color: AppColors.glassBorder, height: 16),
+              Expanded(
+                child: TextField(
+                  controller: editCtrl,
+                  maxLines: null,
+                  expands: true,
+                  style: const TextStyle(color: Color(0xFFE2E8F0), fontFamily: 'monospace', fontSize: 12, height: 1.45),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Tulis kode atau teks di sini...',
+                    hintStyle: TextStyle(color: AppColors.textTertiary),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -281,88 +281,173 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   }
 
   Widget _buildDatasetCard(KnowledgeDataset d, DateFormat df) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
-                ),
-                child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      d.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Embedding: ${d.embeddingModel}',
-                      style: const TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 10,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 16),
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _deleteDataset(d.id, d.name),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            d.description,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.glassBorder, width: 0.5),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return InkWell(
+      onTap: () => _showChunksPreview(d),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _statItem('Dokumen', '${d.documentCount} file'),
-                _statItem('Chunks', '${d.chunkCount} vector'),
-                _statItem('Diperbarui', df.format(d.updatedAt)),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
+                  ),
+                  child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        d.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Embedding: ${d.embeddingModel}',
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 16),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => _deleteDataset(d.id, d.name),
+                ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              d.description,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.glassBorder, width: 0.5),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _statItem('Dokumen', '${d.documentCount} file'),
+                  _statItem('Chunks', '${d.chunkCount} vector'),
+                  _statItem('Diperbarui', df.format(d.updatedAt)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChunksPreview(KnowledgeDataset d) async {
+    HapticFeedback.lightImpact();
+    final chunks = await _db.getChunks(datasetId: d.id);
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.75,
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1117),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(d.name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                      Text('${chunks.length} chunks di SQLite Lokal HP', style: const TextStyle(color: AppColors.gold, fontSize: 11)),
+                    ],
+                  ),
+                ),
+                IconButton(icon: const Icon(Icons.close, color: Colors.white, size: 20), onPressed: () => Navigator.pop(ctx)),
+              ],
+            ),
+            const Divider(color: AppColors.glassBorder, height: 16),
+            Expanded(
+              child: chunks.isEmpty
+                  ? const Center(child: Text('Belum ada chunk vektor.', style: TextStyle(color: AppColors.textTertiary, fontSize: 13)))
+                  : ListView.builder(
+                      itemCount: chunks.length,
+                      itemBuilder: (context, idx) {
+                        final c = chunks[idx];
+                        final text = c['chunk_text']?.toString() ?? '';
+                        final doc = c['doc_name']?.toString() ?? 'doc';
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.glassBorder, width: 0.6),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Chunk #${idx + 1} • $doc', style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  const Icon(CupertinoIcons.checkmark_circle_fill, size: 12, color: Color(0xFF10B981)),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              SelectableText(
+                                text,
+                                style: const TextStyle(color: Color(0xFFE2E8F0), fontSize: 12, height: 1.4),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -437,7 +522,32 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                   'Dokumen akan di-chunk dan disimpan langsung di database SQLite memori HP.',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ActionChip(
+                        backgroundColor: AppColors.surfaceElevated,
+                        label: const Text('Arsitektur Molly On-Device', style: TextStyle(color: AppColors.gold, fontSize: 11)),
+                        onPressed: () {
+                          nameCtrl.text = 'arsitektur_molly_engine.md';
+                          contentCtrl.text = '# Arsitektur Molly On-Device SQLite Engine\n\nMolly beroperasi secara mandiri di memori lokal HP menggunakan SQLite v2.\nTidak ada ketergantungan pada backend server eksternal.\nSeluruh eksekusi chat, RAG kosinus vektor, dan otomasi aBridge diproses on-device.';
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        backgroundColor: AppColors.surfaceElevated,
+                        label: const Text('Pedoman Anti-UI Slop', style: TextStyle(color: AppColors.gold, fontSize: 11)),
+                        onPressed: () {
+                          nameCtrl.text = 'guideline_anti_ui_slop.md';
+                          contentCtrl.text = '# Standar Desain Anti-UI Slop\n\n1. Seluruh margin dan padding harus menghormati MediaQuery safe area padding bottom.\n2. Tidak boleh ada komponen bertumpuk atau overlap sembarangan.\n3. Tipografi rapih dan micro-interactions 60 FPS.';
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: nameCtrl,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
