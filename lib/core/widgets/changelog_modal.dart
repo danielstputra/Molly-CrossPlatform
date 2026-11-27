@@ -334,7 +334,7 @@ class _ChangelogModalState extends State<ChangelogModal> {
                         MollyToast.showInfo(context, 'Mengunduh IPA dari GitHub...');
                         await AppUpdateService.instance.launchDownload(rel);
                       },
-                      icon: const Icon(CupertinoIcons.applelogo, size: 14),
+                      icon: const Icon(Icons.apple, size: 14),
                       label: const Text('Unduh IPA', style: TextStyle(fontSize: 11)),
                     ),
                   OutlinedButton.icon(
