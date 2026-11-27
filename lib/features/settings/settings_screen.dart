@@ -65,13 +65,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ];
 
   final List<String> _antigravityModels = [
-    'gemini-3.8-flash-medium',
-    'gemini-3.8-flash-low',
-    'gemini-3.8-flash-high',
-    'gemini-3.8-pro',
+    'gemini-3.8-flash-tiered',
+    'gemini-3.5-flash-lite',
+    'gemini-2.5-flash',
     'gemini-2.5-pro',
-    'claude-sonnet-4-6-thinking',
-    'claude-opus-4-6-thinking',
+    'gemini-2.5-flash-thinking',
+    'claude-sonnet-5-5-medium',
+    'claude-opus-5-5-medium',
+    'gpt-oss-120b-medium',
   ];
 
   @override

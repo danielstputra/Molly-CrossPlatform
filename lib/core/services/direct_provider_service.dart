@@ -20,14 +20,14 @@ class DirectProviderService {
     try {
       if (prov.contains('antigravity')) {
         return [
-          'gemini-3.8-flash-medium',
-          'gemini-3.8-flash-low',
-          'gemini-3.8-flash-high',
-          'gemini-3.8-pro',
+          'gemini-3.8-flash-tiered',
+          'gemini-3.5-flash-lite',
+          'gemini-2.5-flash',
           'gemini-2.5-pro',
-          'claude-sonnet-4-6-thinking',
-          'claude-opus-4-6-thinking',
-          'deepseek-r1-thinking',
+          'gemini-2.5-flash-thinking',
+          'claude-sonnet-5-5-medium',
+          'claude-opus-5-5-medium',
+          'gpt-oss-120b-medium',
         ];
       }
 
@@ -434,11 +434,24 @@ class DirectProviderService {
       return;
     }
 
-    final antigravityModel = model.isNotEmpty ? model : 'gemini-3.8-flash-medium';
-    final projectId = await oauth.getOrFetchProjectId(token);
+    String antigravityModel = model.isNotEmpty ? model : 'gemini-3.5-flash-lite';
+    // Normalisasi alias nama model ke format resmi yang didukung Google CloudCode Antigravity
+    if (antigravityModel.contains('3.8-flash') || antigravityModel == 'gemini-3.8-flash-medium') {
+      antigravityModel = 'gemini-3.8-flash-tiered';
+    } else if (antigravityModel.contains('thinking')) {
+      antigravityModel = 'gemini-2.5-flash-thinking';
+    } else if (antigravityModel.contains('sonnet')) {
+      antigravityModel = 'claude-sonnet-5-5-medium';
+    } else if (antigravityModel.contains('opus')) {
+      antigravityModel = 'claude-opus-5-5-medium';
+    } else if (antigravityModel.contains('gpt')) {
+      antigravityModel = 'gpt-oss-120b-medium';
+    } else if (antigravityModel.contains('neon') || antigravityModel == 'gemini-3.8-pro') {
+      antigravityModel = 'gemini-2.5-pro';
+    }
 
+    final projectId = await oauth.getOrFetchProjectId(token);
     final url = 'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse';
-    final fallbackUrl = 'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse';
 
     final contents = <Map<String, dynamic>>[];
     for (final m in history) {
@@ -465,7 +478,7 @@ class DirectProviderService {
         if (antigravityModel.contains('thinking'))
           'thinkingConfig': {
             'includeThoughts': true,
-            'thinkingLevel': antigravityModel.contains('low') ? 'LOW' : 'MEDIUM',
+            'thinkingLevel': 'MEDIUM',
           },
       },
     };
@@ -489,40 +502,49 @@ class DirectProviderService {
     http.StreamedResponse response;
     try {
       response = await http.Client().send(createReq(url, payload));
-      if (response.statusCode != 200) {
-        response = await http.Client().send(createReq(fallbackUrl, payload));
-      }
-    } catch (_) {
-      response = await http.Client().send(createReq(fallbackUrl, payload));
+    } catch (e) {
+      yield '⚠️ **Koneksi Jaringan Gagal**: $e. Pastikan perangkat Anda terhubung ke internet.';
+      return;
     }
 
-    // Jika cloudcode internal belum merespons 200, coba alternatif direct generativelanguage
+    // Jika cloudcode internal belum merespons 200 dan pengguna punya Gemini API Key, gunakan direct fallback
     if (response.statusCode != 200) {
       final geminiApiKey = _storage.getApiKey('gemini');
-      final genLangUrl = geminiApiKey.isNotEmpty
-          ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=$geminiApiKey&alt=sse'
-          : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
-      try {
-        final genLangReq = http.Request('POST', Uri.parse(genLangUrl))
-          ..headers.addAll({
-            if (geminiApiKey.isEmpty) 'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          })
-          ..body = jsonEncode(innerRequest);
-        final altRes = await http.Client().send(genLangReq);
-        if (altRes.statusCode == 200) {
-          response = altRes;
-        }
-      } catch (_) {}
+      if (geminiApiKey.isNotEmpty) {
+        final genLangUrl =
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=$geminiApiKey&alt=sse';
+        try {
+          final genLangReq = http.Request('POST', Uri.parse(genLangUrl))
+            ..headers.addAll({'Content-Type': 'application/json'})
+            ..body = jsonEncode(innerRequest);
+          final altRes = await http.Client().send(genLangReq);
+          if (altRes.statusCode == 200) {
+            response = altRes;
+          }
+        } catch (_) {}
+      }
     }
 
     if (response.statusCode != 200) {
       final body = await response.stream.bytesToString();
       debugPrint('[Gemini Antigravity] HTTP ${response.statusCode}: $body');
 
-      if (response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 403) {
-        yield '⚠️ **Kendala Layanan Gemini Antigravity (${response.statusCode})**\n\n'
-            'Sesi token OAuth Google Anda memerlukan pembaruan atau skema payload disesuaikan.\n\n'
+      if (response.statusCode == 429) {
+        yield '⚠️ **Batas Kuota Antigravity Harian Tercapai (HTTP 429: Resource Exhausted)**\n\n'
+            'Akun Google Anda telah mencapai limit kuota harian gratis untuk layanan Google CloudCode/Antigravity.\n\n'
+            '**Solusi Cepat (Rekomendasi):**\n'
+            '1. Buka menu **Pengaturan**, ubah Provider ke **Google Gemini** dan masukkan API Key langsung dari [aistudio.google.com](https://aistudio.google.com) (kuota gratis jauh lebih besar dan stabil).\n'
+            '2. Atau pilih provider **Groq** (sangat cepat & gratis) atau **Ollama (Lokal)**.\n'
+            '3. Kuota Antigravity akun Google Anda akan di-reset otomatis oleh Google pada pergantian hari.';
+      } else if (response.statusCode == 404) {
+        yield '⚠️ **Model / Endpoint Antigravity Tidak Ditemukan (HTTP 404)**\n\n'
+            'Model AI "$antigravityModel" atau endpoint yang diminta tidak tersedia di akun Google Antigravity Anda saat ini.\n\n'
+            '**Langkah Solusi:**\n'
+            '1. Buka menu **Pengaturan**, pilih model resmi yang aktif (seperti `gemini-3.8-flash-tiered`, `gemini-3.5-flash-lite`, atau `gemini-2.5-flash`).\n'
+            '2. Atau gunakan Provider **Google Gemini** dengan API Key dari Google AI Studio.';
+      } else if (response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 403) {
+        yield '⚠️ **Kendala Sesi / Izin Token Google Antigravity (${response.statusCode})**\n\n'
+            'Sesi token OAuth Google Anda telah kedaluwarsa atau memerlukan otorisasi ulang.\n\n'
             '**Langkah Solusi:**\n'
             '1. Buka menu **Pengaturan** di tab bawah.\n'
             '2. Tekan **"Start OAuth Google (Login Antigravity)"** untuk menyegarkan izin token.\n'
