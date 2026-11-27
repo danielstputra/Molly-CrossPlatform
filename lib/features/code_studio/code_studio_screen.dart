@@ -406,7 +406,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                               color: AppColors.gold.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(CupertinoIcons.terminal, color: AppColors.gold, size: 16),
+                            child: const Icon(Icons.terminal, color: AppColors.gold, size: 16),
                           ),
                           const SizedBox(width: 10),
                           Column(
