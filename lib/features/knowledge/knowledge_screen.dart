@@ -102,7 +102,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                     ),
                     ElevatedButton.icon(
                       onPressed: _showUploadModal,
-                      icon: const Icon(CupertinoIcons.doc_badge_plus, color: Colors.black, size: 14),
+                      icon: const Icon(CupertinoIcons.doc_text_fill, color: Colors.black, size: 14),
                       label: const Text(
                         'Tambah Dokumen',
                         style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),

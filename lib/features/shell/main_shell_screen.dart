@@ -126,7 +126,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             items: [
               const FrostedNavItem(index: 0, icon: CupertinoIcons.chat_bubble_2_fill, label: 'Chat'),
               const FrostedNavItem(index: 1, icon: CupertinoIcons.person_3_fill, label: 'Agen'),
-              const FrostedNavItem(index: 2, icon: CupertinoIcons.chevron_left_slash_chevron, label: 'Code'),
+              const FrostedNavItem(index: 2, icon: CupertinoIcons.hammer_fill, label: 'Code'),
               const FrostedNavItem(index: 4, icon: CupertinoIcons.folder_fill, label: 'Space'),
               FrostedNavItem(
                 index: 4,

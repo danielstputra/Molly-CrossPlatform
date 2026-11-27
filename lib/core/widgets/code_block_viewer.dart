@@ -8,11 +8,13 @@ import '../theme/app_colors.dart';
 class CodeBlockViewer extends StatelessWidget {
   final String code;
   final String? language;
+  final String? fileName;
 
   const CodeBlockViewer({
     super.key,
     required this.code,
     this.language,
+    this.fileName,
   });
 
   @override
