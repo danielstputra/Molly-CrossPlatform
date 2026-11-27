@@ -536,6 +536,8 @@ print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
     return await db.query('knowledge_chunks');
   }
 
+  Future<List<Map<String, dynamic>>> getChunks({String? datasetId}) => getAllChunks(datasetId: datasetId);
+
   // ==========================================
   // WORKSPACE FILES (LOCAL SQLITE & FILE ENGINE)
   // ==========================================

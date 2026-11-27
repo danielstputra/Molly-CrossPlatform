@@ -40,6 +40,10 @@ class MollyWorkspaceEngine {
     );
   }
 
+  Future<void> saveFile(String fileName, String content) async {
+    await createFile(fileName: fileName, content: content);
+  }
+
   Future<void> deleteFile(String id) async {
     await _db.deleteWorkspaceFile(id);
   }

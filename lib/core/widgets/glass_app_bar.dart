@@ -7,14 +7,16 @@ import '../theme/app_colors.dart';
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
+  final Widget? titleWidget;
   final Widget? leading;
   final List<Widget>? actions;
   final bool showBackButton;
 
   const GlassAppBar({
     super.key,
-    required this.title,
+    this.title = '',
     this.subtitle,
+    this.titleWidget,
     this.leading,
     this.actions,
     this.showBackButton = true,
@@ -55,36 +57,37 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
                   if ((leading != null || (Navigator.of(context).canPop() && showBackButton)))
                     const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 1),
-                          Text(
-                            subtitle!,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
+                    child: titleWidget ??
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
+                            if (subtitle != null) ...[
+                              const SizedBox(height: 1),
+                              Text(
+                                subtitle!,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
                   ),
                   if (actions != null) ...actions!,
                 ],
