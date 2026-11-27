@@ -93,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildProvidersCard(),
-                const SizedBox(height: 90), // Bottom padding for floating bar
+                const SizedBox(height: 140), // Bottom padding for floating bar
               ],
             ),
           );

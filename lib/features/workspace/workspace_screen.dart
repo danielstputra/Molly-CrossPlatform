@@ -140,7 +140,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,71 +201,125 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             )
           else
             ..._files.map((file) {
+              final id = file['id']?.toString() ?? '';
               final name = file['file_name']?.toString() ?? 'Berkas';
               final path = file['file_path']?.toString() ?? '';
               final size = file['size_bytes'] ?? 0;
-              final updated = file['updated_at']?.toString() ?? '';
+              final content = file['file_content']?.toString() ?? '';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
                 decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
-                      ),
-                      child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'monospace',
-                            ),
+                child: InkWell(
+                  onTap: () => _previewFile(name, content),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$path • $size bytes',
-                            style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'SQLITE',
-                        style: TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
+                          child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$path • $size bytes',
+                                style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 16),
+                          onPressed: () => _deleteFile(id, name),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               );
             }),
         ],
       ),
     );
+  }
+
+  void _previewFile(String name, String content) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.7,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1117),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+                IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
+              ],
+            ),
+            const Divider(color: AppColors.glassBorder),
+            const SizedBox(height: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  content.isNotEmpty ? content : '// Berkas kosong',
+                  style: const TextStyle(color: Color(0xFFE2E8F0), fontFamily: 'monospace', fontSize: 12, height: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteFile(String id, String name) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Hapus Berkas', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text('Hapus "$name" dari memori SQLite?', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal', style: TextStyle(color: AppColors.textTertiary))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _workspace.deleteFile(id);
+      await _loadLocalFiles();
+    }
   }
 }

@@ -568,6 +568,11 @@ print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
     );
   }
 
+  Future<void> deleteWorkspaceFile(String id) async {
+    final db = await database;
+    await db.delete('workspace_files', where: 'id = ?', whereArgs: [id]);
+  }
+
   // ==========================================
   // BACKGROUND JOBS & MCP TOOLS (LOCAL SQLITE)
   // ==========================================

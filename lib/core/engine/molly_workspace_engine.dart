@@ -40,6 +40,10 @@ class MollyWorkspaceEngine {
     );
   }
 
+  Future<void> deleteFile(String id) async {
+    await _db.deleteWorkspaceFile(id);
+  }
+
   /// Calculates a clean line-by-line Diff between two versions directly in Dart
   LocalFileDiff computeDiff({
     required String fileName,

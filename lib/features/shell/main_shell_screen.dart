@@ -10,8 +10,10 @@ import '../abridge/abridge_screen.dart';
 import '../chat/chat_screen.dart';
 import '../code_studio/code_studio_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../evaluation/evaluation_benchmark_screen.dart';
 import '../jobs/jobs_screen.dart';
 import '../knowledge/knowledge_screen.dart';
+import '../music/music_studio_screen.dart';
 import '../settings/settings_screen.dart';
 import '../workspace/workspace_screen.dart';
 
@@ -37,6 +39,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     const WorkspaceScreen(),
     const JobsScreen(),
     const ABridgeScreen(),
+    const MusicStudioScreen(),
+    const EvaluationBenchmarkScreen(),
     const DashboardScreen(),
     const SettingsScreen(),
   ];
@@ -86,12 +90,24 @@ class _MainShellScreenState extends State<MainShellScreen> {
     ),
     _NavMeta(
       index: 7,
+      label: 'Suno Music Studio',
+      icon: CupertinoIcons.music_note_2,
+      activeIcon: CupertinoIcons.music_note_2,
+    ),
+    _NavMeta(
+      index: 8,
+      label: 'Evaluasi & Benchmark',
+      icon: CupertinoIcons.checkmark_seal,
+      activeIcon: CupertinoIcons.checkmark_seal_fill,
+    ),
+    _NavMeta(
+      index: 9,
       label: 'Telemetri Dashboard',
       icon: CupertinoIcons.speedometer,
       activeIcon: CupertinoIcons.speedometer,
     ),
     _NavMeta(
-      index: 8,
+      index: 10,
       label: 'Pengaturan Engine',
       icon: CupertinoIcons.gear_alt,
       activeIcon: CupertinoIcons.gear_alt_fill,
@@ -161,93 +177,97 @@ class _MainShellScreenState extends State<MainShellScreen> {
   void _showMobileMoreSheet() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'SEMUA FITUR & MODUL MOLLY',
-                style: TextStyle(
-                  color: AppColors.gold,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
+                const SizedBox(height: 16),
+                const Text(
+                  'SEMUA FITUR & MODUL MOLLY',
+                  style: TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: _navMetas.map((meta) {
-                  final isCurrent = _currentIndex == meta.index;
-                  return InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() => _currentIndex = meta.index);
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: (MediaQuery.of(context).size.width - 60) / 2,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isCurrent
-                            ? AppColors.gold.withOpacity(0.16)
-                            : AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: _navMetas.map((meta) {
+                    final isCurrent = _currentIndex == meta.index;
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        setState(() => _currentIndex = meta.index);
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: (MediaQuery.of(context).size.width - 50) / 2,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                        decoration: BoxDecoration(
                           color: isCurrent
-                              ? AppColors.gold.withOpacity(0.45)
-                              : AppColors.glassBorder,
-                          width: 0.6,
+                              ? AppColors.gold.withOpacity(0.16)
+                              : AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isCurrent
+                                ? AppColors.gold.withOpacity(0.45)
+                                : AppColors.glassBorder,
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isCurrent ? meta.activeIcon : meta.icon,
+                              color: isCurrent ? AppColors.gold : AppColors.textSecondary,
+                              size: 17,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                meta.label,
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white : AppColors.textSecondary,
+                                  fontSize: 11.5,
+                                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isCurrent ? meta.activeIcon : meta.icon,
-                            color: isCurrent ? AppColors.gold : AppColors.textSecondary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              meta.label,
-                              style: TextStyle(
-                                color: isCurrent ? Colors.white : AppColors.textSecondary,
-                                fontSize: 12,
-                                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         );
       },
