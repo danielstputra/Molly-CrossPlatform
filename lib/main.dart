@@ -1,12 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'core/database/molly_local_database.dart';
-import 'core/services/antigravity_oauth_service.dart';
-import 'core/services/local_storage_service.dart';
-import 'core/theme/app_theme.dart';
-import 'features/shell/main_shell_screen.dart';
-
 import 'dart:ui';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/database/molly_local_database.dart';
@@ -14,22 +8,46 @@ import 'core/services/antigravity_oauth_service.dart';
 import 'core/services/local_storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/shell/main_shell_screen.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Global Error Interceptors untuk mencegah aplikasi Crash/Force Close pada Android 14/15/16
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    debugPrint('[Molly Error] ${details.exception}');
-  };
+  // 1. Inisialisasi Firebase & Google Crashlytics
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-  PlatformDispatcher.instance.onError = (error, stack) {
-    debugPrint('[Molly Async Error] $error\n$stack');
-    return true; // Mencegah OS mematikan proses jika terjadi async unhandled error
-  };
+    // Otomatis aktifkan pengumpulan crash
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    await FirebaseCrashlytics.instance.setCustomKey('app_name', 'Molly AI Studio');
+    await FirebaseCrashlytics.instance.setCustomKey('app_version', '2.6.0');
 
-  // Konfigurasi Edge-to-Edge System Bar (Apple HIG & Modern Android Look)
+    // Meneruskan semua fatal error dari Flutter framework ke Crashlytics
+    FlutterError.onError = (details) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      FlutterError.presentError(details);
+    };
+
+    // Meneruskan semua async error tak tertangani ke Crashlytics tanpa mematikan UI
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  } catch (e) {
+    debugPrint('[Firebase Crashlytics Error] Inisialisasi gagal: $e');
+    // Fallback error handler jika Firebase tidak aktif
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+    };
+    PlatformDispatcher.instance.onError = (error, stack) {
+      debugPrint('[Async Error] $error\n$stack');
+      return true;
+    };
+  }
+
+  // 2. Konfigurasi Edge-to-Edge System Bar (Apple HIG & Modern Android Look)
   try {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -45,7 +63,7 @@ Future<void> main() async {
     debugPrint('SystemUIOverlayStyle error: $e');
   }
 
-  // Inisialisasi Service Lokal dengan Perlindungan Try-Catch (Fail-Safe Startup)
+  // 3. Inisialisasi Service Lokal dengan Perlindungan Try-Catch (Fail-Safe Startup)
   try {
     await LocalStorageService.instance.init();
   } catch (e) {

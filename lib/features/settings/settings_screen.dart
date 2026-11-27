@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -270,6 +271,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildLocalDatabaseCard(),
           const SizedBox(height: 18),
           _buildDirectProviderCard(),
+          const SizedBox(height: 18),
+          _buildCrashlyticsCard(),
           const SizedBox(height: 18),
           _buildAboutCard(),
         ],
@@ -844,6 +847,141 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 elevation: 0,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCrashlyticsCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: GlassDecorations.frostedCard(blur: 16, borderColor: Colors.redAccent.withOpacity(0.3)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(CupertinoIcons.exclamationmark_shield_fill, color: Colors.redAccent, size: 16),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'GOOGLE FIREBASE CRASHLYTICS',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.greenAccent.withOpacity(0.3), width: 0.8),
+                ),
+                child: const Text(
+                  'AKTIF',
+                  style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Pemantauan crash dan error diagnostik real-time terintegrasi langsung dengan SDK Google Crashlytics. Seluruh unhandled exception otomatis dikirim ke konsol Firebase.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    HapticFeedback.lightImpact();
+                    try {
+                      await FirebaseCrashlytics.instance.log("Uji coba pengiriman log diagnostik dari pengguna");
+                      await FirebaseCrashlytics.instance.recordError(
+                        Exception("Manual Diagnostic Test Error (Non-Fatal)"),
+                        StackTrace.current,
+                        reason: 'Pengujian diagnostik telemetri Crashlytics',
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Log diagnostik non-fatal berhasil dikirim ke Google Crashlytics!'),
+                            backgroundColor: AppColors.surfaceElevated,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Crashlytics error: $e'), backgroundColor: Colors.red.shade900),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(CupertinoIcons.doc_plaintext, size: 14, color: Colors.white),
+                  label: const Text('Kirim Log Non-Fatal', style: TextStyle(color: Colors.white, fontSize: 11)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    showCupertinoDialog(
+                      context: context,
+                      builder: (ctx) => CupertinoAlertDialog(
+                        title: const Text('Uji Coba Crash Fatal'),
+                        content: const Text(
+                          'Aplikasi akan dipaksa crash seketika menggunakan FirebaseCrashlytics.instance.crash() untuk memverifikasi stack trace di Firebase Console. Lanjutkan?',
+                        ),
+                        actions: [
+                          CupertinoDialogAction(
+                            isDefaultAction: true,
+                            child: const Text('Batal'),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                          CupertinoDialogAction(
+                            isDestructiveAction: true,
+                            child: const Text('Crash Sekarang'),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              FirebaseCrashlytics.instance.crash();
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(CupertinoIcons.flame_fill, size: 14, color: Colors.white),
+                  label: const Text('Test Crash (Fatal)', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade800,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
