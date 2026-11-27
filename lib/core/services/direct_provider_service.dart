@@ -453,22 +453,26 @@ class DirectProviderService {
     });
 
     final innerRequest = {
+      'model': antigravityModel,
       'contents': contents,
       if (systemPrompt != null && systemPrompt.isNotEmpty)
         'systemInstruction': {
           'parts': [{'text': systemPrompt}]
         },
       'generationConfig': {
-        'thinkingConfig': {
-          'includeThoughts': true,
-          'thinkingLevel': antigravityModel.contains('low') ? 'LOW' : 'MEDIUM',
-        },
+        'temperature': 0.7,
+        'maxOutputTokens': 4096,
+        if (antigravityModel.contains('thinking'))
+          'thinkingConfig': {
+            'includeThoughts': true,
+            'thinkingLevel': antigravityModel.contains('low') ? 'LOW' : 'MEDIUM',
+          },
       },
     };
 
     // Google CloudCode Antigravity v1internal membungkus contents di dalam field 'request'
     final payload = {
-      if (projectId.isNotEmpty) 'project': projectId,
+      'project': projectId.isNotEmpty ? projectId : 'projects/-',
       'model': antigravityModel,
       'request': innerRequest,
     };
@@ -492,14 +496,16 @@ class DirectProviderService {
       response = await http.Client().send(createReq(fallbackUrl, payload));
     }
 
-    // Jika cloudcode internal gagal, coba fallback ke generativelanguage dengan access token
+    // Jika cloudcode internal belum merespons 200, coba alternatif direct generativelanguage
     if (response.statusCode != 200) {
-      final genLangUrl =
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
+      final geminiApiKey = _storage.getApiKey('gemini');
+      final genLangUrl = geminiApiKey.isNotEmpty
+          ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=$geminiApiKey&alt=sse'
+          : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
       try {
         final genLangReq = http.Request('POST', Uri.parse(genLangUrl))
           ..headers.addAll({
-            'Authorization': 'Bearer $token',
+            if (geminiApiKey.isEmpty) 'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
           })
           ..body = jsonEncode(innerRequest);
@@ -512,7 +518,19 @@ class DirectProviderService {
 
     if (response.statusCode != 200) {
       final body = await response.stream.bytesToString();
-      yield 'Kesalahan Gemini Antigravity API (${response.statusCode}): $body';
+      debugPrint('[Gemini Antigravity] HTTP ${response.statusCode}: $body');
+
+      if (response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 403) {
+        yield '⚠️ **Kendala Layanan Gemini Antigravity (${response.statusCode})**\n\n'
+            'Sesi token OAuth Google Anda memerlukan pembaruan atau skema payload disesuaikan.\n\n'
+            '**Langkah Solusi:**\n'
+            '1. Buka menu **Pengaturan** di tab bawah.\n'
+            '2. Tekan **"Start OAuth Google (Login Antigravity)"** untuk menyegarkan izin token.\n'
+            '3. Atau pilih provider **Google Gemini / Groq / OpenAI** dan masukkan API Key langsung untuk akses instan tanpa kedaluwarsa token OAuth.\n\n'
+            '*(Detail API: $body)*';
+      } else {
+        yield 'Kesalahan Gemini Antigravity API (${response.statusCode}): $body';
+      }
       return;
     }
 

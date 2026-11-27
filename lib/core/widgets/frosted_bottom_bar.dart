@@ -31,16 +31,16 @@ class FrostedBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final safeBottom = MediaQuery.of(context).padding.bottom;
     return Container(
       margin: EdgeInsets.only(
         left: 14,
         right: 14,
-        bottom: bottomInset > 0 ? 6 : 10,
+        bottom: safeBottom > 0 ? safeBottom : 8,
       ),
-      height: 58,
+      height: 56,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(

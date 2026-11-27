@@ -84,7 +84,7 @@ class MollyToast {
 
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom > 0
         ? MediaQuery.of(context).viewInsets.bottom + 12
-        : (MediaQuery.of(context).padding.bottom + 85);
+        : (MediaQuery.of(context).padding.bottom + 70);
 
     messenger.showSnackBar(
       SnackBar(

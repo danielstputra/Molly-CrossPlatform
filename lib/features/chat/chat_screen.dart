@@ -535,12 +535,15 @@ class ChatScreenState extends State<ChatScreen> {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     final isKeyboardOpen = bottomInset > 0;
 
+    // Posisi input bar menempel rapat di atas toolbar bottom dengan jarak mikro 4px
+    final toolbarOffset = 56.0 + (safeBottom > 0 ? safeBottom : 8.0) + 4.0;
+
     return Container(
       margin: EdgeInsets.only(
         left: 12,
         right: 12,
-        top: 4,
-        bottom: isKeyboardOpen ? 6 : (safeBottom > 0 ? safeBottom + 68 : 72),
+        top: 2,
+        bottom: isKeyboardOpen ? 6.0 : toolbarOffset,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
