@@ -222,9 +222,9 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'RIWAYAT LAGU SUNO AI (${_tracks.length})',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.gold,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
