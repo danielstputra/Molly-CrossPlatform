@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/database/molly_local_database.dart';
+import '../../core/engine/molly_python_runner.dart';
 import '../../core/engine/molly_workspace_engine.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
@@ -321,6 +322,20 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
               ),
               Row(
                 children: [
+                  ElevatedButton.icon(
+                    onPressed: _runCurrentFile,
+                    icon: const Icon(CupertinoIcons.play_circle_fill, color: Colors.black, size: 14),
+                    label: const Text('Jalankan', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(CupertinoIcons.pencil, color: Colors.white, size: 16),
                     tooltip: 'Edit Berkas',
@@ -348,6 +363,153 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _runCurrentFile() async {
+    final current = _localFiles.firstWhere((f) => f['file_name'] == _selectedFileName, orElse: () => {});
+    if (current.isEmpty) return;
+
+    final content = current['file_content']?.toString() ?? '';
+    HapticFeedback.mediumImpact();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return FutureBuilder<PythonExecutionResult>(
+          future: MollyPythonRunner.instance.runScript(content),
+          builder: (ctx, snapshot) {
+            final isRunning = snapshot.connectionState == ConnectionState.waiting;
+            final res = snapshot.data;
+
+            return Container(
+              height: MediaQuery.of(ctx).size.height * 0.65,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D0E12),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(CupertinoIcons.terminal, color: AppColors.gold, size: 16),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Terminal: $_selectedFileName',
+                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                              ),
+                              const Text(
+                                'Python 3.12 (On-Device Sandboxed Runner)',
+                                style: TextStyle(color: AppColors.textTertiary, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (!isRunning && res != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: res.isSuccess
+                                ? const Color(0xFF10B981).withOpacity(0.2)
+                                : Colors.redAccent.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            res.isSuccess ? 'EXIT 0 (${res.durationMs}ms)' : 'EXIT ${res.exitCode}',
+                            style: TextStyle(
+                              color: res.isSuccess ? const Color(0xFF10B981) : Colors.redAccent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const Divider(color: AppColors.glassBorder, height: 1),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: isRunning
+                          ? const Center(
+                              child: CupertinoActivityIndicator(color: AppColors.gold, radius: 12),
+                            )
+                          : SingleChildScrollView(
+                              child: SelectableText(
+                                res?.stderr.isNotEmpty == true
+                                    ? res!.stderr
+                                    : (res?.stdout ?? 'Tidak ada output.'),
+                                style: TextStyle(
+                                  color: res?.isSuccess == true ? const Color(0xFFE2E8F0) : const Color(0xFFF87171),
+                                  fontFamily: 'monospace',
+                                  fontSize: 12,
+                                  height: 1.45,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton.icon(
+                        onPressed: isRunning || res == null
+                            ? null
+                            : () {
+                                final text = res.stderr.isNotEmpty ? res.stderr : res.stdout;
+                                Clipboard.setData(ClipboardData(text: text));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Output terminal berhasil disalin!'), behavior: SnackBarBehavior.floating),
+                                );
+                              },
+                        icon: const Icon(CupertinoIcons.doc_on_doc, size: 14, color: AppColors.gold),
+                        label: const Text('Salin Output', style: TextStyle(color: AppColors.gold, fontSize: 12)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.surfaceElevated,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text('Tutup', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

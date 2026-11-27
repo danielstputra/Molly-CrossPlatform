@@ -258,11 +258,43 @@ class MollyLocalDatabase {
         'description': 'Membuka dan mengendalikan aplikasi native Android langsung dari instruksi Agent AI.',
         'is_enabled': 1,
       },
+      {
+        'id': 'tool-python-runner',
+        'name': 'On-Device Python Wasm Runner',
+        'category': 'builtin',
+        'description': 'Eksekusi script Python lokal di HP tanpa server: iterasi, fungsi matematika, dan logika kalkulasi.',
+        'is_enabled': 1,
+      },
     ];
 
     for (final t in initialTools) {
       await db.insert('mcp_tools', t, conflictAlgorithm: ConflictAlgorithm.replace);
     }
+
+    // Seed Sample On-Device Python File
+    final samplePy = '''# Script Analisis Python On-Device (Molly Standalone)
+import math
+
+print("=== Molly Standalone Python Engine ===")
+radius = 7.5
+area = math.pi * math.pow(radius, 2)
+print(f"Luas lingkaran dengan radius {radius} = {area}")
+
+numbers = [12, 45, 78, 23, 56, 89]
+total = sum(numbers)
+avg = total / len(numbers)
+print(f"Total: {total}, Rata-rata: {avg}")
+print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
+''';
+    await db.insert('workspace_files', {
+      'id': 'file-default-py',
+      'file_name': 'main.py',
+      'file_path': '/molly/workspace/main.py',
+      'file_content': samplePy,
+      'file_type': 'text/x-python',
+      'size_bytes': utf8.encode(samplePy).length,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
     // Seed Initial Local Settings
     await db.insert('system_settings', {'key': 'active_provider', 'value': 'OpenAI'},

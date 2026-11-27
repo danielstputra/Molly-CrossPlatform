@@ -4,6 +4,7 @@ import '../database/molly_local_database.dart';
 import '../models/chat_message.dart';
 import '../services/abridge_service.dart';
 import '../services/direct_provider_service.dart';
+import 'molly_python_runner.dart';
 
 class MollyAgentEngine {
   MollyAgentEngine._();
@@ -134,6 +135,13 @@ class MollyAgentEngine {
         args: {},
         status: 'running',
       );
+    } else if (lower.contains('python') || lower.contains('jalankan kode') || lower.contains('run code') || lower.contains('eksekusi script')) {
+      return ToolInvocation(
+        id: 'py-${DateTime.now().millisecondsSinceEpoch}',
+        toolName: 'python_code_runner',
+        args: {'code': prompt},
+        status: 'running',
+      );
     }
     return null;
   }
@@ -218,6 +226,28 @@ class MollyAgentEngine {
           toolName: tool.toolName,
           args: tool.args,
           result: res['message'] ?? 'Viewport screen frame ditangkap.',
+          status: 'completed',
+        );
+      } else if (tool.toolName == 'python_code_runner') {
+        final code = tool.args['code']?.toString() ?? '';
+        String cleanCode = code;
+        if (cleanCode.contains('```python')) {
+          final start = cleanCode.indexOf('```python') + 9;
+          final end = cleanCode.indexOf('```', start);
+          if (end > start) cleanCode = cleanCode.substring(start, end).trim();
+        } else if (cleanCode.contains('```')) {
+          final start = cleanCode.indexOf('```') + 3;
+          final end = cleanCode.indexOf('```', start);
+          if (end > start) cleanCode = cleanCode.substring(start, end).trim();
+        }
+        final res = await MollyPythonRunner.instance.runScript(cleanCode);
+        tool = ToolInvocation(
+          id: tool.id,
+          toolName: tool.toolName,
+          args: tool.args,
+          result: res.isSuccess
+              ? 'Python Output (exit 0, ${res.durationMs}ms):\n${res.stdout}'
+              : 'Python Error (exit ${res.exitCode}):\n${res.stderr}',
           status: 'completed',
         );
       }
