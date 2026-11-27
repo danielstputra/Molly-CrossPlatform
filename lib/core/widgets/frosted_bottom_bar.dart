@@ -36,9 +36,9 @@ class FrostedBottomBar extends StatelessWidget {
       margin: EdgeInsets.only(
         left: 14,
         right: 14,
-        bottom: bottomInset > 0 ? bottomInset + 6 : 14,
+        bottom: bottomInset > 0 ? 6 : 10,
       ),
-      height: 60,
+      height: 58,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(

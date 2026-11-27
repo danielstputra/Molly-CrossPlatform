@@ -540,7 +540,7 @@ class ChatScreenState extends State<ChatScreen> {
         left: 12,
         right: 12,
         top: 4,
-        bottom: isKeyboardOpen ? 8 : (safeBottom > 0 ? safeBottom + 74 : 82),
+        bottom: isKeyboardOpen ? 6 : (safeBottom > 0 ? safeBottom + 68 : 72),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),

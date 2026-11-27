@@ -13,6 +13,7 @@ class AntigravityOAuthProfile {
   final String accessToken;
   final String refreshToken;
   final int expiryTimestamp;
+  final String projectId;
 
   const AntigravityOAuthProfile({
     required this.email,
@@ -21,6 +22,7 @@ class AntigravityOAuthProfile {
     required this.accessToken,
     required this.refreshToken,
     required this.expiryTimestamp,
+    this.projectId = '',
   });
 
   bool get isExpired => DateTime.now().millisecondsSinceEpoch >= (expiryTimestamp - 60000);
@@ -32,6 +34,7 @@ class AntigravityOAuthProfile {
     'access_token': accessToken,
     'refresh_token': refreshToken,
     'expiry_timestamp': expiryTimestamp,
+    'project_id': projectId,
   };
 
   factory AntigravityOAuthProfile.fromJson(Map<String, dynamic> json) {
@@ -42,6 +45,7 @@ class AntigravityOAuthProfile {
       accessToken: json['access_token'] as String? ?? '',
       refreshToken: json['refresh_token'] as String? ?? '',
       expiryTimestamp: json['expiry_timestamp'] as int? ?? 0,
+      projectId: json['project_id'] as String? ?? '',
     );
   }
 }
@@ -68,6 +72,54 @@ class AntigravityOAuthService {
   AntigravityOAuthProfile? _currentProfile;
   AntigravityOAuthProfile? get currentProfile => _currentProfile;
   bool get isAuthenticated => _currentProfile != null && _currentProfile!.accessToken.isNotEmpty;
+  String _cachedProjectId = '';
+
+  /// Mengambil atau mendeteksi ID Proyek GCP CloudCode Companion
+  Future<String> getOrFetchProjectId(String token) async {
+    if (_cachedProjectId.isNotEmpty) return _cachedProjectId;
+    if (_currentProfile != null && _currentProfile!.projectId.isNotEmpty) {
+      _cachedProjectId = _currentProfile!.projectId;
+      return _cachedProjectId;
+    }
+
+    try {
+      final res = await http.post(
+        Uri.parse('https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Antigravity/1.104.0 (Windows NT 10.0; Win64; x64)',
+        },
+        body: jsonEncode({
+          'metadata': {'ideType': 'IDE_UNSPECIFIED'},
+        }),
+      );
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body) as Map<String, dynamic>;
+        final p = json['cloudaicompanionProject'] as String?;
+        if (p != null && p.isNotEmpty) {
+          _cachedProjectId = p;
+          if (_currentProfile != null) {
+            final updated = AntigravityOAuthProfile(
+              email: _currentProfile!.email,
+              name: _currentProfile!.name,
+              picture: _currentProfile!.picture,
+              accessToken: _currentProfile!.accessToken,
+              refreshToken: _currentProfile!.refreshToken,
+              expiryTimestamp: _currentProfile!.expiryTimestamp,
+              projectId: p,
+            );
+            await _saveProfile(updated);
+            _currentProfile = updated;
+          }
+          return p;
+        }
+      }
+    } catch (e) {
+      debugPrint('[AntigravityOAuthService] loadCodeAssist error: $e');
+    }
+    return '';
+  }
 
   HttpServer? _authServer;
   Completer<String>? _activeCompleter;

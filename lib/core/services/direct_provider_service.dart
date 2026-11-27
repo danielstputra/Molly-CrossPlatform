@@ -435,6 +435,8 @@ class DirectProviderService {
     }
 
     final antigravityModel = model.isNotEmpty ? model : 'gemini-3.8-flash-medium';
+    final projectId = await oauth.getOrFetchProjectId(token);
+
     final url = 'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse';
     final fallbackUrl = 'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse';
 
@@ -450,7 +452,7 @@ class DirectProviderService {
       'parts': [{'text': prompt}],
     });
 
-    final payload = {
+    final innerRequest = {
       'contents': contents,
       if (systemPrompt != null && systemPrompt.isNotEmpty)
         'systemInstruction': {
@@ -464,22 +466,48 @@ class DirectProviderService {
       },
     };
 
-    http.Request createReq(String endpoint) => http.Request('POST', Uri.parse(endpoint))
-      ..headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'User-Agent': 'Antigravity/1.104.0 (Windows NT 10.0; Win64; x64)',
-      })
-      ..body = jsonEncode(payload);
+    // Google CloudCode Antigravity v1internal membungkus contents di dalam field 'request'
+    final payload = {
+      if (projectId.isNotEmpty) 'project': projectId,
+      'model': antigravityModel,
+      'request': innerRequest,
+    };
+
+    http.Request createReq(String endpoint, Map<String, dynamic> body) =>
+        http.Request('POST', Uri.parse(endpoint))
+          ..headers.addAll({
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Antigravity/1.104.0 (Windows NT 10.0; Win64; x64)',
+          })
+          ..body = jsonEncode(body);
 
     http.StreamedResponse response;
     try {
-      response = await http.Client().send(createReq(url));
+      response = await http.Client().send(createReq(url, payload));
       if (response.statusCode != 200) {
-        response = await http.Client().send(createReq(fallbackUrl));
+        response = await http.Client().send(createReq(fallbackUrl, payload));
       }
     } catch (_) {
-      response = await http.Client().send(createReq(fallbackUrl));
+      response = await http.Client().send(createReq(fallbackUrl, payload));
+    }
+
+    // Jika cloudcode internal gagal, coba fallback ke generativelanguage dengan access token
+    if (response.statusCode != 200) {
+      final genLangUrl =
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
+      try {
+        final genLangReq = http.Request('POST', Uri.parse(genLangUrl))
+          ..headers.addAll({
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          })
+          ..body = jsonEncode(innerRequest);
+        final altRes = await http.Client().send(genLangReq);
+        if (altRes.statusCode == 200) {
+          response = altRes;
+        }
+      } catch (_) {}
     }
 
     if (response.statusCode != 200) {
@@ -498,7 +526,8 @@ class DirectProviderService {
 
       try {
         final json = jsonDecode(dataStr);
-        final candidates = json['candidates'] as List?;
+        // Mendukung format standard 'candidates' maupun nested 'response.candidates'
+        final candidates = (json['candidates'] ?? json['response']?['candidates']) as List?;
         if (candidates != null && candidates.isNotEmpty) {
           final parts = candidates[0]['content']?['parts'] as List?;
           if (parts != null) {
