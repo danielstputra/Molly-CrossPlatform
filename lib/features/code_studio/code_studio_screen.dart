@@ -122,6 +122,32 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     );
   }
 
+  void _deleteBranch(String branch) {
+    if (branch == 'main') {
+      MollyToast.showWarning(context, 'Cabang utama (main) tidak dapat dihapus.', title: 'Aksi Ditolak');
+      return;
+    }
+    setState(() {
+      _isolatedBranches.remove(branch);
+      if (_activeBranch == branch) {
+        _activeBranch = 'main';
+      }
+    });
+    MollyToast.showInfo(context, 'Cabang "$branch" telah dihapus dari worktree memori.', title: 'Cabang Dihapus');
+  }
+
+  void _mergeBranch(String branch) {
+    if (branch == 'main') return;
+    setState(() {
+      _activeBranch = 'main';
+    });
+    MollyToast.showSuccess(
+      context,
+      'Perubahan dari cabang "$branch" berhasil digabungkan (merged) ke "main".',
+      title: 'Merge Selesai',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -401,7 +427,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 125),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -738,31 +764,28 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
 
   Widget _buildWorktreesView() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 125),
       children: [
         // Create Branch Bar
         Container(
           padding: const EdgeInsets.all(12),
           decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _newBranchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    hintText: 'Nama cabang tugas baru (misal: feat-auth-sqlite)...',
-                    hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                    border: InputBorder.none,
-                  ),
-                ),
+              MollyTextField(
+                controller: _newBranchController,
+                labelText: 'Buat Cabang Kerja Terisolasi',
+                hintText: 'Misal: feat-auth-sqlite, fix-parser...',
               ),
+              const SizedBox(height: 10),
               ElevatedButton.icon(
                 onPressed: _createIsolatedBranch,
                 icon: const Icon(CupertinoIcons.plus, color: Colors.black, size: 14),
-                label: const Text('Buat Cabang', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 12)),
+                label: const Text('Buat Cabang Baru', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 12)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.gold,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -780,10 +803,13 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
-            decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+            decoration: GlassDecorations.frostedCard(
+              blur: 16,
+              borderColor: isCurrent ? AppColors.gold.withOpacity(0.4) : AppColors.glassBorder,
+            ),
             child: Row(
               children: [
-                const Icon(CupertinoIcons.arrow_branch, color: AppColors.gold, size: 18),
+                Icon(CupertinoIcons.arrow_branch, color: isCurrent ? AppColors.gold : AppColors.textTertiary, size: 18),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -803,12 +829,24 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                     ],
                   ),
                 ),
-                if (!isCurrent)
+                if (!isCurrent) ...[
                   TextButton(
                     onPressed: () {
                       setState(() => _activeBranch = branch);
                     },
                     child: const Text('Beralih', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.arrow_merge, color: Color(0xFF38BDF8), size: 16),
+                    tooltip: 'Gabungkan ke main',
+                    onPressed: () => _mergeBranch(branch),
+                  ),
+                ],
+                if (branch != 'main')
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 16),
+                    tooltip: 'Hapus Cabang',
+                    onPressed: () => _deleteBranch(branch),
                   ),
               ],
             ),
@@ -835,7 +873,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     ];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 125),
       children: [
         const Text(
           'TEMPLAT SKRIP CEPAT',
@@ -919,11 +957,38 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                 'OUTPUT TERMINAL EKSEKUSI',
                 style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8),
               ),
-              if (_cliExecutionTimeMs > 0)
-                Text(
-                  'Waktu eksekusi: ${_cliExecutionTimeMs}ms',
-                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                ),
+              Row(
+                children: [
+                  if (_cliExecutionTimeMs > 0)
+                    Text(
+                      'Waktu: ${_cliExecutionTimeMs}ms  ',
+                      style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                    ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _cliOutput = '';
+                        _cliExecutionTimeMs = 0;
+                      });
+                      MollyToast.showInfo(context, 'Terminal berhasil dibersihkan.', title: 'Output Dibersihkan');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(CupertinoIcons.clear_circled, color: Colors.white70, size: 12),
+                          SizedBox(width: 4),
+                          Text('Bersihkan', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 8),

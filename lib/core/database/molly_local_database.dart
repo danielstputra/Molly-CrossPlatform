@@ -466,6 +466,11 @@ print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
     );
   }
 
+  Future<void> deleteAgent(String id) async {
+    final db = await database;
+    await db.delete('agents', where: 'id = ?', whereArgs: [id]);
+  }
+
   // ==========================================
   // KNOWLEDGE BASE (LOCAL SQLITE)
   // ==========================================

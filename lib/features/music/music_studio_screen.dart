@@ -209,7 +209,7 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
         showBackButton: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 125),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

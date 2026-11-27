@@ -52,7 +52,7 @@ class _JobsScreenState extends State<JobsScreen> {
           IconButton(
             icon: const Icon(CupertinoIcons.plus_circle_fill, color: AppColors.gold, size: 22),
             tooltip: 'Tambah Jadwal Cron Baru',
-            onPressed: _showCreateJobDialog,
+            onPressed: () => _showAddJobDialog(),
           ),
           IconButton(
             onPressed: _loading ? null : _loadData,
@@ -167,7 +167,7 @@ class _JobsScreenState extends State<JobsScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 125),
       itemCount: _jobs.length,
       itemBuilder: (context, index) {
         final job = _jobs[index];
@@ -230,6 +230,14 @@ class _JobsScreenState extends State<JobsScreen> {
                       ),
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.pencil, color: AppColors.textTertiary, size: 16),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => _showAddJobDialog(job),
+                  ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 16),
                     visualDensity: VisualDensity.compact,
@@ -316,93 +324,103 @@ class _JobsScreenState extends State<JobsScreen> {
 
   Widget _buildToolsList() {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 125),
       itemCount: _tools.length,
       itemBuilder: (context, index) {
         final tool = _tools[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
           decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
-                ),
-                child: Icon(
-                  tool.category == 'mcp'
-                      ? CupertinoIcons.layers_alt_fill
-                      : CupertinoIcons.hammer_fill,
-                  color: AppColors.gold,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+          child: InkWell(
+            onTap: () => _showToolDetail(tool),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
+                    ),
+                    child: Icon(
+                      tool.category == 'mcp'
+                          ? CupertinoIcons.layers_alt_fill
+                          : CupertinoIcons.hammer_fill,
+                      color: AppColors.gold,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          tool.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceElevated,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            tool.category.toUpperCase(),
-                            style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                tool.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceElevated,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                tool.category.toUpperCase(),
+                                style: const TextStyle(
+                                  color: AppColors.gold,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tool.description,
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      tool.description,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  CupertinoSwitch(
+                    value: tool.isEnabled,
+                    activeColor: AppColors.gold,
+                    onChanged: (val) async {
+                      await MollyLocalDatabase.instance.toggleMcpTool(tool.id, val);
+                      setState(() {
+                        _tools[index] = ExtensionTool(
+                          id: tool.id,
+                          name: tool.name,
+                          category: tool.category,
+                          description: tool.description,
+                          isEnabled: val,
+                          parameters: tool.parameters,
+                        );
+                      });
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              CupertinoSwitch(
-                value: tool.isEnabled,
-                activeColor: AppColors.gold,
-                onChanged: (val) async {
-                  await MollyLocalDatabase.instance.toggleMcpTool(tool.id, val);
-                  setState(() {
-                    _tools[index] = ExtensionTool(
-                      id: tool.id,
-                      name: tool.name,
-                      category: tool.category,
-                      description: tool.description,
-                      isEnabled: val,
-                      parameters: tool.parameters,
-                    );
-                  });
-                },
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -495,10 +513,11 @@ class _JobsScreenState extends State<JobsScreen> {
     }
   }
 
-  void _showCreateJobDialog() {
-    final nameCtrl = TextEditingController();
-    final typeCtrl = TextEditingController(text: 'maintenance');
-    final scheduleCtrl = TextEditingController(text: '0 2 * * * (Setiap 02:00 Pagi)');
+  void _showAddJobDialog([BackgroundJob? existingJob]) {
+    final isEditing = existingJob != null;
+    final nameCtrl = TextEditingController(text: existingJob?.name ?? '');
+    final typeCtrl = TextEditingController(text: existingJob?.taskType ?? 'maintenance');
+    final scheduleCtrl = TextEditingController(text: existingJob?.schedule ?? '0 2 * * * (Setiap 02:00 Pagi)');
 
     showModalBottomSheet(
       context: context,
@@ -518,9 +537,9 @@ class _JobsScreenState extends State<JobsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tambah Jadwal Cron Background Baru',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+                Text(
+                  isEditing ? 'Ubah Jadwal Cron Background' : 'Tambah Jadwal Cron Background Baru',
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 const Text(
@@ -553,23 +572,27 @@ class _JobsScreenState extends State<JobsScreen> {
                       final name = nameCtrl.text.trim();
                       if (name.isEmpty) return;
 
-                      final newJob = BackgroundJob(
-                        id: 'job-${DateTime.now().millisecondsSinceEpoch}',
+                      final savedJob = BackgroundJob(
+                        id: isEditing ? existingJob.id : 'job-${DateTime.now().millisecondsSinceEpoch}',
                         name: name,
                         taskType: typeCtrl.text.trim().isEmpty ? 'cron' : typeCtrl.text.trim(),
-                        status: 'idle',
+                        status: isEditing ? existingJob.status : 'idle',
                         schedule: scheduleCtrl.text.trim(),
-                        nextRun: 'Menunggu pemicu',
+                        nextRun: isEditing ? existingJob.nextRun : 'Menunggu pemicu',
+                        lastRun: existingJob?.lastRun,
+                        progress: existingJob?.progress ?? 0.0,
                       );
 
-                      await MollyLocalDatabase.instance.saveBackgroundJob(newJob);
+                      await MollyLocalDatabase.instance.saveBackgroundJob(savedJob);
                       if (ctx.mounted) Navigator.pop(ctx);
                       await _loadData();
                       if (mounted) {
                         MollyToast.showSuccess(
                           context,
-                          'Jadwal cron "$name" berhasil ditambahkan ke SQLite!',
-                          title: 'Jadwal Ditambahkan',
+                          isEditing
+                              ? 'Jadwal cron "$name" berhasil diperbarui!'
+                              : 'Jadwal cron "$name" berhasil ditambahkan ke SQLite!',
+                          title: isEditing ? 'Jadwal Diperbarui' : 'Jadwal Ditambahkan',
                         );
                       }
                     },
@@ -579,7 +602,10 @@ class _JobsScreenState extends State<JobsScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Simpan Jadwal Cron', style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(
+                      isEditing ? 'Perbarui Jadwal Cron' : 'Simpan Jadwal Cron',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],
@@ -587,6 +613,80 @@ class _JobsScreenState extends State<JobsScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showToolDetail(ExtensionTool tool) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1117),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(tool.category == 'mcp' ? CupertinoIcons.layers_alt_fill : CupertinoIcons.hammer_fill, color: AppColors.gold, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tool.name, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text('Tipe: ${tool.category.toUpperCase()} • Status: ${tool.isEnabled ? "Aktif" : "Nonaktif"}', style: const TextStyle(color: AppColors.gold, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(color: AppColors.glassBorder, height: 24),
+            const Text('DESKRIPSI CAPABILITY', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+            const SizedBox(height: 6),
+            Text(tool.description, style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 13, height: 1.4)),
+            const SizedBox(height: 16),
+            const Text('PARAMETER SCHEMA (ON-DEVICE JSON)', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.black.withOpacity(0.5), borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.glassBorder)),
+              child: SelectableText(
+                tool.parameters.isNotEmpty ? tool.parameters : '{\n  "type": "object",\n  "properties": {}\n}',
+                style: const TextStyle(color: Color(0xFF94A3B8), fontFamily: 'monospace', fontSize: 11.5),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  MollyToast.showSuccess(context, 'Alat "${tool.name}" berhasil diuji coba di engine lokal!');
+                },
+                icon: const Icon(CupertinoIcons.play_arrow_solid, size: 14, color: Colors.black),
+                label: const Text('Uji Coba Eksekusi Alat', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

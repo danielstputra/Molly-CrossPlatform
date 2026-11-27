@@ -10,8 +10,13 @@ import '../../core/widgets/tool_call_card.dart';
 
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
+  final VoidCallback? onRegenerate;
 
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    this.onRegenerate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,26 +137,52 @@ class MessageBubble extends StatelessWidget {
                       ),
                     ],
                   ),
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: message.content));
-                      MollyToast.showSuccess(context, 'Jawaban Molly berhasil disalin!');
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(CupertinoIcons.doc_on_clipboard, size: 12, color: AppColors.gold),
-                          SizedBox(width: 4),
-                          Text(
-                            'Salin',
-                            style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w600),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onRegenerate != null) ...[
+                        InkWell(
+                          onTap: onRegenerate,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(CupertinoIcons.arrow_2_circlepath, size: 12, color: AppColors.textSecondary),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Buat Ulang',
+                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      InkWell(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: message.content));
+                          MollyToast.showSuccess(context, 'Jawaban Molly berhasil disalin!');
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(CupertinoIcons.doc_on_clipboard, size: 12, color: AppColors.gold),
+                              SizedBox(width: 4),
+                              Text(
+                                'Salin',
+                                style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

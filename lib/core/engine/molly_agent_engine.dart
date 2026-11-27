@@ -24,6 +24,7 @@ class MollyAgentEngine {
     required String sessionId,
     required String userPrompt,
     String? agentId,
+    String? additionalContext,
     ValueChanged<ToolInvocation>? onToolCall,
   }) async* {
     // 1. Get Agent Profile from local SQLite
@@ -35,6 +36,10 @@ class MollyAgentEngine {
         final a = matched.first;
         systemPrompt = '${a.systemPrompt}\n\nPeran Anda: ${a.name} (${a.category}).\nKeahlian: ${a.skills.join(", ")}';
       }
+    }
+
+    if (additionalContext != null && additionalContext.trim().isNotEmpty) {
+      systemPrompt += '\n\n[Konteks Referensi RAG / Berkas Personal]:\n$additionalContext';
     }
 
     // 2. Fetch past conversation from local SQLite

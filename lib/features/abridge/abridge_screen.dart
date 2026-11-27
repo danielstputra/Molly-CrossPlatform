@@ -56,7 +56,7 @@ class _ABridgeScreenState extends State<ABridgeScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

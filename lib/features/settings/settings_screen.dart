@@ -533,7 +533,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         showBackButton: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
         children: [
           _buildStandaloneEngineStatusCard(),
           const SizedBox(height: 18),

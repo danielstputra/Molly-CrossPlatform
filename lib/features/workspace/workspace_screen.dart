@@ -143,7 +143,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -267,6 +267,43 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     );
   }
 
+  void _showRenameDialog(String currentName, String content) {
+    final renameCtrl = TextEditingController(text: currentName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Ubah Nama Berkas', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: MollyTextField(
+          controller: renameCtrl,
+          labelText: 'Nama Berkas Baru',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = renameCtrl.text.trim();
+              if (newName.isNotEmpty && newName != currentName) {
+                await _workspace.deleteFile(fileName: currentName);
+                await _workspace.createFile(fileName: newName, content: content);
+                Navigator.pop(ctx);
+                _loadLocalFiles();
+                if (mounted) {
+                  MollyToast.showSuccess(context, 'Nama berkas diubah menjadi "$newName"');
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+            child: const Text('Simpan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _previewFile(String name, String content) {
     showModalBottomSheet(
       context: context,
@@ -302,6 +339,14 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       onPressed: () {
                         Navigator.pop(ctx);
                         _showEditFileDialog(name, content);
+                      },
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(CupertinoIcons.pencil_ellipsis_rectangle, size: 14, color: AppColors.gold),
+                      label: const Text('Ubah Nama', style: TextStyle(color: AppColors.gold, fontSize: 12)),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showRenameDialog(name, content);
                       },
                     ),
                     IconButton(

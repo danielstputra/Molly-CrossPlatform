@@ -30,9 +30,9 @@ class _AgentsScreenState extends State<AgentsScreen> {
     'Engineering',
     'Web & AI',
     'Automation',
-    'DevOps',
-    'Architecture',
-    'Frontend & Design',
+    'Security',
+    'Data & Analytics',
+    'Creative & Multimedia',
   ];
 
   @override
@@ -192,7 +192,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
   Widget _buildAgentsGrid(int cols) {
     if (cols == 1) {
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 125),
         itemCount: _filteredAgents.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
@@ -203,7 +203,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: cols,
         crossAxisSpacing: 14,
@@ -218,13 +218,14 @@ class _AgentsScreenState extends State<AgentsScreen> {
     );
   }
 
-  void _showCreateAgentDialog() {
-    final nameCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final promptCtrl = TextEditingController();
-    final skillsCtrl = TextEditingController();
-    String cat = 'Engineering';
-    String model = 'gemini-3.8-flash-medium';
+  void _showCreateAgentDialog([AgentPreset? existingAgent]) {
+    final isEditing = existingAgent != null;
+    final nameCtrl = TextEditingController(text: existingAgent?.name ?? '');
+    final descCtrl = TextEditingController(text: existingAgent?.description ?? '');
+    final promptCtrl = TextEditingController(text: existingAgent?.systemPrompt ?? '');
+    final skillsCtrl = TextEditingController(text: existingAgent != null ? existingAgent.skills.join(', ') : '');
+    String cat = existingAgent?.category ?? 'Engineering';
+    String model = existingAgent?.model ?? 'gemini-3.8-flash-medium';
 
     showModalBottomSheet(
       context: context,
@@ -253,9 +254,9 @@ class _AgentsScreenState extends State<AgentsScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    'BUAT AGEN AI KUSTOM BARU',
-                    style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                  Text(
+                    isEditing ? 'UBAH AGEN AI KUSTOM' : 'BUAT AGEN AI KUSTOM BARU',
+                    style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 12),
                   MollyTextField(
@@ -289,7 +290,10 @@ class _AgentsScreenState extends State<AgentsScreen> {
                     height: 44,
                     child: ElevatedButton.icon(
                       icon: const Icon(CupertinoIcons.checkmark_alt, size: 16, color: Colors.black),
-                      label: const Text('Simpan Agen ke SQLite Lokal', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: Text(
+                        isEditing ? 'Perbarui Agen di SQLite Lokal' : 'Simpan Agen ke SQLite Lokal',
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.gold,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -299,8 +303,8 @@ class _AgentsScreenState extends State<AgentsScreen> {
                         final name = nameCtrl.text.trim();
                         if (name.isEmpty) return;
 
-                        final newAgent = AgentPreset(
-                          id: 'agent-${DateTime.now().millisecondsSinceEpoch}',
+                        final savedAgent = AgentPreset(
+                          id: isEditing ? existingAgent.id : 'agent-${DateTime.now().millisecondsSinceEpoch}',
                           name: name,
                           category: cat,
                           description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : 'Agen Kustom Mandiri',
@@ -310,11 +314,16 @@ class _AgentsScreenState extends State<AgentsScreen> {
                           isCustom: true,
                         );
 
-                        await MollyLocalDatabase.instance.saveAgent(newAgent);
+                        await MollyLocalDatabase.instance.saveAgent(savedAgent);
                         Navigator.pop(ctx);
                         await _loadAgents();
                         if (mounted) {
-                          MollyToast.showSuccess(context, 'Agen "${newAgent.name}" berhasil disimpan di SQLite lokal!');
+                          MollyToast.showSuccess(
+                            context,
+                            isEditing
+                                ? 'Agen "${savedAgent.name}" berhasil diperbarui!'
+                                : 'Agen "${savedAgent.name}" berhasil disimpan di SQLite lokal!',
+                          );
                         }
                       },
                     ),
@@ -326,6 +335,39 @@ class _AgentsScreenState extends State<AgentsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteAgent(AgentPreset agent) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Hapus Agen Kustom', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus agen "${agent.name}" dari basis data lokal HP?',
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _db.deleteAgent(agent.id);
+      await _loadAgents();
+      if (mounted) {
+        MollyToast.showSuccess(context, 'Agen "${agent.name}" berhasil dihapus dari SQLite.');
+      }
+    }
   }
 
   Widget _buildAgentCard(AgentPreset agent) {
@@ -567,7 +609,45 @@ class _AgentsScreenState extends State<AgentsScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              if (agent.isCustom) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _showCreateAgentDialog(agent);
+                        },
+                        icon: const Icon(CupertinoIcons.pencil, size: 14, color: AppColors.gold),
+                        label: const Text('Ubah Agen', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.gold, width: 0.8),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _deleteAgent(agent);
+                        },
+                        icon: const Icon(CupertinoIcons.trash, size: 14, color: Color(0xFFEF4444)),
+                        label: const Text('Hapus Agen', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFEF4444), width: 0.8),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
               SizedBox(
                 width: double.infinity,
                 height: 48,

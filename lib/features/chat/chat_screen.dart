@@ -45,6 +45,7 @@ class ChatScreenState extends State<ChatScreen> {
   String _selectedModelName = 'gemini-3.8-flash-medium';
   List<ChatMessage> _messages = [];
   bool _isGenerating = false;
+  StreamSubscription<String>? _activeStreamSubscription;
 
   void selectAgent(AgentPreset agent) {
     setState(() {
@@ -178,7 +179,7 @@ class ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     // Execute full agent loop & direct LLM streaming on device
-    _engine
+    _activeStreamSubscription = _engine
         .executeAgentStream(
       sessionId: _currentSessionId,
       userPrompt: text,
@@ -203,6 +204,7 @@ class ChatScreenState extends State<ChatScreen> {
           botMsg.isStreaming = false;
           _isGenerating = false;
         });
+        _activeStreamSubscription = null;
         _scrollToBottom();
       },
       onError: (err) {
@@ -211,8 +213,39 @@ class ChatScreenState extends State<ChatScreen> {
           botMsg.isStreaming = false;
           _isGenerating = false;
         });
+        _activeStreamSubscription = null;
       },
     );
+  }
+
+  void _stopGeneration() {
+    _activeStreamSubscription?.cancel();
+    _activeStreamSubscription = null;
+    setState(() {
+      _isGenerating = false;
+      if (_messages.isNotEmpty && _messages.last.isStreaming) {
+        _messages.last.isStreaming = false;
+      }
+    });
+    HapticFeedback.heavyImpact();
+    MollyToast.showInfo(context, 'Streaming respons dihentikan.');
+  }
+
+  void _regenerateLatestResponse() {
+    if (_isGenerating || _messages.isEmpty) return;
+    String? lastUserPrompt;
+    for (int i = _messages.length - 1; i >= 0; i--) {
+      if (_messages[i].role == 'user') {
+        lastUserPrompt = _messages[i].content;
+        break;
+      }
+    }
+    if (lastUserPrompt == null || lastUserPrompt.isEmpty) return;
+
+    if (_messages.last.role == 'assistant') {
+      _messages.removeLast();
+    }
+    _handleSend(lastUserPrompt);
   }
 
   void _createNewSession() async {
@@ -340,7 +373,11 @@ class ChatScreenState extends State<ChatScreen> {
                 if (_messages.length <= 1 && index == 1) {
                   return _buildSuggestedPrompts();
                 }
-                return MessageBubble(message: _messages[index]);
+                final isLastAssistant = index == _messages.length - 1 && !_messages[index].isUser;
+                return MessageBubble(
+                  message: _messages[index],
+                  onRegenerate: isLastAssistant && !_isGenerating ? _regenerateLatestResponse : null,
+                );
               },
             ),
           ),
@@ -521,20 +558,20 @@ class ChatScreenState extends State<ChatScreen> {
                   onPressed: _showVoiceInputSheet,
                 ),
 
-                // Tombol Kirim
+                // Tombol Kirim / Stop
                 GestureDetector(
-                  onTap: () => _handleSend(),
+                  onTap: _isGenerating ? _stopGeneration : () => _handleSend(),
                   child: Container(
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: _isGenerating ? null : AppColors.goldGradient,
-                      color: _isGenerating ? AppColors.surfaceElevated : null,
+                      color: _isGenerating ? const Color(0xFFEF4444) : null,
                     ),
                     child: Center(
                       child: _isGenerating
-                          ? const CupertinoActivityIndicator(radius: 8, color: AppColors.gold)
+                          ? const Icon(CupertinoIcons.stop_fill, size: 16, color: Colors.white)
                           : const Icon(CupertinoIcons.arrow_up, size: 18, color: Colors.black),
                     ),
                   ),
@@ -624,10 +661,18 @@ class ChatScreenState extends State<ChatScreen> {
                       leading: const Icon(CupertinoIcons.square_stack_3d_up_fill, color: AppColors.gold, size: 18),
                       title: Text(d.name, style: const TextStyle(color: Colors.white, fontSize: 13)),
                       subtitle: Text('${d.documentCount} dokumen', style: const TextStyle(color: AppColors.textTertiary, fontSize: 11)),
-                      trailing: const Text('Kueri RAG', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.bold)),
-                      onTap: () {
+                      trailing: const Text('Sisipkan RAG', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.bold)),
+                      onTap: () async {
                         Navigator.pop(ctx);
-                        _textController.text = '${_textController.text} [Gunakan Referensi RAG: ${d.name}] ';
+                        final chunks = await _db.getChunks(datasetId: d.id);
+                        final chunkTexts = chunks.take(3).map((c) => c['chunk_text']?.toString() ?? '').where((t) => t.isNotEmpty).join('\n---\n');
+                        final snippet = chunkTexts.isNotEmpty
+                            ? '\n\n[Referensi Dokumen (${d.name})]:\n$chunkTexts\n'
+                            : ' [Gunakan Referensi RAG: ${d.name}] ';
+                        _textController.text = '${_textController.text}$snippet';
+                        if (mounted) {
+                          MollyToast.showSuccess(context, 'Konteks RAG "${d.name}" disisipkan!');
+                        }
                       },
                     );
                   }),
