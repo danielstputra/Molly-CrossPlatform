@@ -55,8 +55,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
     _NavMeta(
       index: 2,
       label: 'Molly Code Studio',
-      icon: CupertinoIcons.chevron_left_slash_chevron,
-      activeIcon: CupertinoIcons.chevron_left_slash_chevron,
+      icon: CupertinoIcons.hammer,
+      activeIcon: CupertinoIcons.hammer_fill,
     ),
     _NavMeta(
       index: 3,

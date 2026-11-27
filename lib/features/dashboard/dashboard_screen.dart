@@ -15,7 +15,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final _service = MollyStudioService.instance;
   Map<String, dynamic>? _metrics;
   bool _loading = false;
 

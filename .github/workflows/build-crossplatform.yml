@@ -74,13 +74,23 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build iOS No-Codesign Release
-        run: flutter build ios --release --no-codesign
+      - name: Build iOS Release
+        run: |
+          flutter build ios --config-only
+          xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO || flutter build ios --release --no-codesign --simulator
 
       - name: Package iOS Payload to IPA
         run: |
           mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
+          if [ -d "build/ios/iphoneos/Runner.app" ]; then
+            cp -r build/ios/iphoneos/Runner.app Payload/
+          elif [ -d "build/Release-iphoneos/Runner.app" ]; then
+            cp -r build/Release-iphoneos/Runner.app Payload/
+          elif [ -d "build/ios/iphonesimulator/Runner.app" ]; then
+            cp -r build/ios/iphonesimulator/Runner.app Payload/
+          elif [ -d "build/Release-iphonesimulator/Runner.app" ]; then
+            cp -r build/Release-iphonesimulator/Runner.app Payload/
+          fi
           zip -r Molly-iOS-Release.ipa Payload
 
       - name: Upload iOS IPA Artifact

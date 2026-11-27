@@ -15,7 +15,6 @@ class JobsScreen extends StatefulWidget {
 }
 
 class _JobsScreenState extends State<JobsScreen> {
-  final _service = MollyStudioService.instance;
   int _activeTab = 0; // 0 = Jobs & Crons, 1 = Extensions & MCP Tools
   List<BackgroundJob> _jobs = [];
   List<ExtensionTool> _tools = [];

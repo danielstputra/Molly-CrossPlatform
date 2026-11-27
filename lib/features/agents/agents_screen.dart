@@ -17,7 +17,6 @@ class AgentsScreen extends StatefulWidget {
 }
 
 class _AgentsScreenState extends State<AgentsScreen> {
-  final _service = MollyStudioService.instance;
   List<AgentPreset> _allAgents = [];
   List<AgentPreset> _filteredAgents = [];
   bool _loading = false;
