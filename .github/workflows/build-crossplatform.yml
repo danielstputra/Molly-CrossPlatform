@@ -1,0 +1,132 @@
+name: Release Molly CrossPlatform (Android APK & iOS IPA)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ========================================================
+  # BUILD ANDROID RELEASE APK
+  # ========================================================
+  build-android:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Rename APK for Release
+        run: cp build/app/outputs/flutter-apk/app-release.apk Molly-Standalone-Release.apk
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Molly-Android-Release-APK
+          path: Molly-Standalone-Release.apk
+
+  # ========================================================
+  # BUILD APPLE IOS NO-CODESIGN RELEASE (.ipa)
+  # ========================================================
+  build-ios:
+    name: Build iOS Release Package (.ipa)
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build iOS No-Codesign Release
+        run: flutter build ios --release --no-codesign
+
+      - name: Package iOS Payload to IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r Molly-iOS-Release.ipa Payload
+
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Molly-iOS-Release-IPA
+          path: Molly-iOS-Release.ipa
+
+  # ========================================================
+  # PUBLISH GITHUB RELEASE WITH APK & IPA ASSETS
+  # ========================================================
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: Molly-Android-Release-APK
+          path: ./release-assets
+
+      - name: Download iOS IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: Molly-iOS-Release-IPA
+          path: ./release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.6.0-standalone
+          name: "Molly AI Studio v2.6.0 Standalone (Android & iOS)"
+          body: |
+            ## Molly AI Studio v2.6.0 Standalone Release
+            
+            Platform mandiri cross-platform untuk Android dan iOS dengan arsitektur **Apple HIG** dan **Anti-UI Slop**:
+            - **Database SQLite Lokal On-Device**: 9 tabel relasional terisolasi di sandbox perangkat (`molly_standalone_v2.db`).
+            - **Google OAuth & Gemini Antigravity**: Login Google mandiri untuk akses langsung ke model Gemini 3.8 / Pro CloudCode API.
+            - **Native Engine Dart**: MollyAgentEngine, MollyKnowledgeEngine (Vector RAG), dan MollyWorkspaceEngine (Local Code Diff).
+            - **Zero Dummy Data**: Telemetri live langsung dari database HP.
+            
+            ### Unduhan Binary Rilis:
+            - **Android**: `Molly-Standalone-Release.apk`
+            - **iOS**: `Molly-iOS-Release.ipa` (Sideload via TrollStore, AltStore, Sideloadly, atau Scarlet)
+          files: |
+            ./release-assets/Molly-Standalone-Release.apk
+            ./release-assets/Molly-iOS-Release.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
