@@ -65,14 +65,10 @@ class MollyToast {
         icon = CupertinoIcons.checkmark_circle_fill;
         break;
       case ToastType.error:
-        accentColor = const Color(0xFFEF4444); // Bright Red
+      case ToastType.failed:
+        accentColor = const Color(0xFFEF4444); // Coral Red
         bgColor = const Color(0xFF330D0D);
         icon = CupertinoIcons.exclamationmark_circle_fill;
-        break;
-      case ToastType.failed:
-        accentColor = const Color(0xFFF43F5E); // Rose / Crimson
-        bgColor = const Color(0xFF330B18);
-        icon = CupertinoIcons.xmark_circle_fill;
         break;
       case ToastType.warning:
         accentColor = const Color(0xFFF59E0B); // Amber
@@ -181,3 +177,4 @@ class MollyToast {
     );
   }
 }
+

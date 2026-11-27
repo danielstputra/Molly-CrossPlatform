@@ -122,23 +122,16 @@ class MessageBubble extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Row(
-                      children: const [
-                        Icon(CupertinoIcons.checkmark_seal_fill, size: 11, color: Color(0xFF10B981)),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'On-Device SQLite Engine',
-                            style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Row(
+                    children: const [
+                      Icon(CupertinoIcons.checkmark_seal_fill, size: 11, color: Color(0xFF10B981)),
+                      SizedBox(width: 4),
+                      Text(
+                        'On-Device SQLite Engine',
+                        style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: message.content));

@@ -3,9 +3,8 @@ import '../theme/app_colors.dart';
 
 /// Standar Inputan Teks Molly berdesain Anti-UI Slop.
 /// Menjamin posisi rapi, batas teks aman di dalam box, dan visual kontras tinggi.
-class MollyTextField extends StatefulWidget {
+class MollyTextField extends StatelessWidget {
   final TextEditingController? controller;
-  final FocusNode? focusNode;
   final String? hintText;
   final String? labelText;
   final int maxLines;
@@ -24,7 +23,6 @@ class MollyTextField extends StatefulWidget {
   const MollyTextField({
     super.key,
     this.controller,
-    this.focusNode,
     this.hintText,
     this.labelText,
     this.maxLines = 1,
@@ -42,122 +40,76 @@ class MollyTextField extends StatefulWidget {
   });
 
   @override
-  State<MollyTextField> createState() => _MollyTextFieldState();
-}
-
-class _MollyTextFieldState extends State<MollyTextField> {
-  late FocusNode _focusNode;
-  bool _isFocused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = widget.focusNode ?? FocusNode();
-    _focusNode.addListener(_handleFocusChange);
-  }
-
-  @override
-  void dispose() {
-    if (widget.focusNode == null) {
-      _focusNode.dispose();
-    } else {
-      _focusNode.removeListener(_handleFocusChange);
-    }
-    super.dispose();
-  }
-
-  void _handleFocusChange() {
-    if (mounted) {
-      setState(() {
-        _isFocused = _focusNode.hasFocus;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (widget.labelText != null) ...[
+        if (labelText != null) ...[
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 6),
             child: Text(
-              widget.labelText!,
-              style: TextStyle(
-                color: _isFocused ? AppColors.gold : AppColors.textSecondary,
+              labelText!,
+              style: const TextStyle(
+                color: AppColors.gold,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.8,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated.withOpacity(0.8),
+            color: AppColors.surfaceElevated.withOpacity(0.7),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: _isFocused ? AppColors.gold : AppColors.glassBorder,
-              width: _isFocused ? 1.2 : 0.8,
-            ),
+            border: Border.all(color: AppColors.glassBorder, width: 0.8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
-              if (_isFocused)
-                BoxShadow(
-                  color: AppColors.gold.withOpacity(0.18),
-                  blurRadius: 10,
-                  offset: const Offset(0, 1),
-                ),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
             child: TextField(
-              controller: widget.controller,
-              focusNode: _focusNode,
-              maxLines: widget.maxLines,
-              minLines: widget.minLines,
-              obscureText: widget.obscureText,
-              keyboardType: widget.keyboardType,
-              readOnly: widget.readOnly,
-              onTap: widget.onTap,
-              onChanged: widget.onChanged,
-              onSubmitted: widget.onSubmitted,
-              style: widget.style ?? const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.4),
+              controller: controller,
+              maxLines: maxLines,
+              minLines: minLines,
+              obscureText: obscureText,
+              keyboardType: keyboardType,
+              readOnly: readOnly,
+              onTap: onTap,
+              onChanged: onChanged,
+              onSubmitted: onSubmitted,
+              style: style ?? const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.4),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.transparent,
-                hintText: widget.hintText,
+                hintText: hintText,
                 hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12.5),
-                prefixIcon: widget.prefixIcon,
-                suffixIcon: widget.suffixIcon,
+                prefixIcon: prefixIcon,
+                suffixIcon: suffixIcon,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: InputBorder.none,
-                focusedBorder: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.gold, width: 1.2),
+                ),
                 enabledBorder: InputBorder.none,
               ),
             ),
           ),
         ),
-        if (widget.helperText != null) ...[
+        if (helperText != null) ...[
           Padding(
             padding: const EdgeInsets.only(left: 6, top: 4),
             child: Text(
-              widget.helperText!,
+              helperText!,
               style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -165,3 +117,4 @@ class _MollyTextFieldState extends State<MollyTextField> {
     );
   }
 }
+
