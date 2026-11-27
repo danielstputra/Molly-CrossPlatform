@@ -112,10 +112,10 @@ class _JobsScreenState extends State<JobsScreen> {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withValues(alpha: 0.16) : Colors.transparent,
+          color: isSelected ? AppColors.gold.withOpacity(0.16) : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           border: isSelected
-              ? Border.all(color: AppColors.gold.withValues(alpha: 0.4), width: 0.6)
+              ? Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.6)
               : null,
         ),
         child: Row(
@@ -181,9 +181,9 @@ class _JobsScreenState extends State<JobsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
+                      color: statusColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.4), width: 0.5),
+                      border: Border.all(color: statusColor.withOpacity(0.4), width: 0.5),
                     ),
                     child: Text(
                       job.status.toUpperCase(),
@@ -252,9 +252,9 @@ class _JobsScreenState extends State<JobsScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.12),
+                  color: AppColors.gold.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.6),
+                  border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
                 ),
                 child: Icon(
                   tool.category == 'mcp'

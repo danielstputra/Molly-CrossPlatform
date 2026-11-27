@@ -215,9 +215,9 @@ class _ChatScreenState extends State<ChatScreen> {
             margin: const EdgeInsets.only(right: 14),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.16),
+              color: AppColors.gold.withOpacity(0.16),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.gold.withValues(alpha: 0.35), width: 0.6),
+              border: Border.all(color: AppColors.gold.withOpacity(0.35), width: 0.6),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -266,12 +266,12 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.85),
+              color: AppColors.surface.withOpacity(0.85),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.glassBorder, width: 0.8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: Colors.black.withOpacity(0.25),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),

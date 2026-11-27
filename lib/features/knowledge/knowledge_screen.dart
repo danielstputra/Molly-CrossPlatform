@@ -295,9 +295,9 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.12),
+                  color: AppColors.gold.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.6),
+                  border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
                 ),
                 child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
               ),
@@ -342,7 +342,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceElevated.withValues(alpha: 0.7),
+              color: AppColors.surfaceElevated.withOpacity(0.7),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.glassBorder, width: 0.5),
             ),
@@ -415,7 +415,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.8),
+              border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

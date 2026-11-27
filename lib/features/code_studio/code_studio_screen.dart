@@ -165,10 +165,10 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.gold.withValues(alpha: 0.16) : Colors.transparent,
+          color: isSelected ? AppColors.gold.withOpacity(0.16) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: isSelected
-              ? Border.all(color: AppColors.gold.withValues(alpha: 0.4), width: 0.6)
+              ? Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.6)
               : null,
         ),
         child: Row(
@@ -264,10 +264,10 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
             margin: const EdgeInsets.only(bottom: 6),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.gold.withValues(alpha: 0.16) : Colors.transparent,
+              color: isSelected ? AppColors.gold.withOpacity(0.16) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: isSelected
-                  ? Border.all(color: AppColors.gold.withValues(alpha: 0.4), width: 0.6)
+                  ? Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.6)
                   : null,
             ),
             child: Row(

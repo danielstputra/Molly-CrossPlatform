@@ -161,10 +161,10 @@ class _AgentsScreenState extends State<AgentsScreen> {
               duration: const Duration(milliseconds: 160),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.gold.withValues(alpha: 0.18) : AppColors.surface,
+                color: isSelected ? AppColors.gold.withOpacity(0.18) : AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? AppColors.gold.withValues(alpha: 0.45) : AppColors.glassBorder,
+                  color: isSelected ? AppColors.gold.withOpacity(0.45) : AppColors.glassBorder,
                   width: 0.6,
                 ),
               ),
@@ -219,9 +219,9 @@ class _AgentsScreenState extends State<AgentsScreen> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.12),
+                    color: AppColors.gold.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.6),
+                    border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
                   ),
                   child: const Icon(CupertinoIcons.sparkles, color: AppColors.gold, size: 18),
                 ),
@@ -293,7 +293,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated.withValues(alpha: 0.8),
+                    color: AppColors.surfaceElevated.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: AppColors.glassBorder, width: 0.5),
                   ),
@@ -332,7 +332,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.8),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -419,7 +419,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceElevated,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.gold.withValues(alpha: 0.25), width: 0.6),
+                      border: Border.all(color: AppColors.gold.withOpacity(0.25), width: 0.6),
                     ),
                     child: Text(
                       s,

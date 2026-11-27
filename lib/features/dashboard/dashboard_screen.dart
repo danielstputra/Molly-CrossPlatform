@@ -107,12 +107,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.8),
+        color: AppColors.surface.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.8),
+        border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.gold.withValues(alpha: 0.08),
+            color: AppColors.gold.withOpacity(0.08),
             blurRadius: 24,
             spreadRadius: 2,
           ),
@@ -128,7 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gradient: AppColors.goldGradient,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.gold.withValues(alpha: 0.4),
+                  color: AppColors.gold.withOpacity(0.4),
                   blurRadius: 16,
                 ),
               ],
@@ -153,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'Memantau konsumsi token, performa orkestrasi multi-agen, dan throughput model.',
                   style: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.9),
+                    color: AppColors.textSecondary.withOpacity(0.9),
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -311,7 +311,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.surfaceElevated.withValues(alpha: 0.6),
+              color: AppColors.surfaceElevated.withOpacity(0.6),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: AppColors.glassBorder,

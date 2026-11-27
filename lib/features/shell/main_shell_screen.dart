@@ -159,7 +159,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.8),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -202,12 +202,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       decoration: BoxDecoration(
                         color: isCurrent
-                            ? AppColors.gold.withValues(alpha: 0.16)
+                            ? AppColors.gold.withOpacity(0.16)
                             : AppColors.surfaceElevated,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isCurrent
-                              ? AppColors.gold.withValues(alpha: 0.45)
+                              ? AppColors.gold.withOpacity(0.45)
                               : AppColors.glassBorder,
                           width: 0.6,
                         ),
@@ -250,7 +250,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     return Container(
       width: 250,
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.75),
+        color: AppColors.surface.withOpacity(0.75),
         border: const Border(
           right: BorderSide(
             color: AppColors.glassBorder,
@@ -279,10 +279,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.gold.withValues(alpha: 0.12),
+                          color: AppColors.gold.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppColors.gold.withValues(alpha: 0.3),
+                            color: AppColors.gold.withOpacity(0.3),
                             width: 0.5,
                           ),
                         ),
@@ -314,7 +314,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                           gradient: AppColors.goldGradient,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.gold.withValues(alpha: 0.35),
+                              color: AppColors.gold.withOpacity(0.35),
                               blurRadius: 10,
                               spreadRadius: 1,
                             ),
@@ -342,7 +342,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                           Text(
                             'Enterprise Standalone',
                             style: TextStyle(
-                              color: AppColors.textSecondary.withValues(alpha: 0.8),
+                              color: AppColors.textSecondary.withOpacity(0.8),
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
                             ),
@@ -380,12 +380,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.gold.withValues(alpha: 0.16)
+                                  ? AppColors.gold.withOpacity(0.16)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(9),
                               border: isSelected
                                   ? Border.all(
-                                      color: AppColors.gold.withValues(alpha: 0.35),
+                                      color: AppColors.gold.withOpacity(0.35),
                                       width: 0.8,
                                     )
                                   : null,
@@ -488,7 +488,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         color: color,
         shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.black.withValues(alpha: 0.2),
+          color: Colors.black.withOpacity(0.2),
           width: 0.5,
         ),
       ),

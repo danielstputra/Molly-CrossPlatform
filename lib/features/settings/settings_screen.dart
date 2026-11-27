@@ -280,7 +280,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildStandaloneEngineStatusCard() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: GlassDecorations.frostedCard(blur: 20, borderColor: AppColors.gold.withValues(alpha: 0.3)),
+      decoration: GlassDecorations.frostedCard(blur: 20, borderColor: AppColors.gold.withOpacity(0.3)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -289,7 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
+                  color: AppColors.gold.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(CupertinoIcons.bolt_fill, color: AppColors.gold, size: 20),
@@ -357,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: GlassDecorations.frostedCard(
         blur: 20,
-        borderColor: isAuth ? AppColors.success.withValues(alpha: 0.5) : AppColors.gold.withValues(alpha: 0.5),
+        borderColor: isAuth ? AppColors.success.withOpacity(0.5) : AppColors.gold.withOpacity(0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +370,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: (isAuth ? AppColors.success : AppColors.gold).withValues(alpha: 0.15),
+                      color: (isAuth ? AppColors.success : AppColors.gold).withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -394,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isAuth ? AppColors.success : Colors.white12).withValues(alpha: 0.2),
+                  color: (isAuth ? AppColors.success : Colors.white12).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isAuth ? AppColors.success : Colors.white24,
@@ -434,7 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundColor: AppColors.gold.withValues(alpha: 0.2),
+                        backgroundColor: AppColors.gold.withOpacity(0.2),
                         child: Text(
                           profile.email.isNotEmpty ? profile.email[0].toUpperCase() : 'G',
                           style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700),
@@ -490,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5), width: 0.8),
+                      side: BorderSide(color: AppColors.gold.withOpacity(0.5), width: 0.8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
@@ -506,7 +506,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.4), width: 0.8),
+                      side: BorderSide(color: Colors.redAccent.withOpacity(0.4), width: 0.8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
@@ -626,7 +626,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.gold.withValues(alpha: 0.4), width: 0.8),
+                side: BorderSide(color: AppColors.gold.withOpacity(0.4), width: 0.8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
@@ -713,7 +713,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.6),
+                border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
               ),
               child: Row(
                 children: const [
@@ -746,7 +746,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() => _modelController.text = m);
                     _saveDirectSettings();
                   },
-                  selectedColor: AppColors.gold.withValues(alpha: 0.8),
+                  selectedColor: AppColors.gold.withOpacity(0.8),
                   backgroundColor: AppColors.surfaceElevated,
                   labelStyle: TextStyle(
                     color: isCur ? Colors.black : Colors.white70,

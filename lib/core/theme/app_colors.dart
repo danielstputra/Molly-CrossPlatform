@@ -9,6 +9,13 @@ class AppColors {
   static const Color bgSurface = Color(0xFF161B27);
   static const Color bgGlass = Color(0x66161B27); // Semi-transparent untuk frosted blur
 
+  // Aliases for compatibility
+  static const Color background = bgPrimary;
+  static const Color surface = bgSurface;
+  static const Color surfaceElevated = bgSurface;
+  static const Color glassBorder = borderGlass;
+  static const Color textTertiary = textMuted;
+
   // Aksen Emas Mewah (Liquid Gold)
   static const Color gold = Color(0xFFEAB308);
   static const Color goldLight = Color(0xFFFDE047);

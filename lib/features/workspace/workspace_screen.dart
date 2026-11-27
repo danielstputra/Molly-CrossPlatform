@@ -53,7 +53,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.8),
+              border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -216,9 +216,9 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.12),
+                        color: AppColors.gold.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 0.6),
+                        border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.6),
                       ),
                       child: const Icon(CupertinoIcons.doc_text_fill, color: AppColors.gold, size: 18),
                     ),

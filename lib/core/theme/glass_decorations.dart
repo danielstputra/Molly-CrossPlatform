@@ -35,6 +35,15 @@ class GlassDecorations {
     );
   }
 
+  /// Kartu frosted glass dekoratif
+  static BoxDecoration frostedCard({double blur = 16.0, Color? borderColor}) {
+    return BoxDecoration(
+      color: AppColors.bgSurface.withOpacity(0.85),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: borderColor ?? AppColors.borderGlass, width: 0.8),
+    );
+  }
+
   /// Kartu mewah dengan aksen border emas halus dan efek elevasi ambient.
   static BoxDecoration goldCardDecoration({double radius = 16.0}) {
     return BoxDecoration(

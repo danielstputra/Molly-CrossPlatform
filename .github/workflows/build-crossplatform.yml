@@ -65,6 +65,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Scaffold iOS Native Project
+        run: flutter create . --platforms=ios --org com.molly
+
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
