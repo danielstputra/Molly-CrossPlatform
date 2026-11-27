@@ -7,6 +7,7 @@ import '../../core/database/molly_local_database.dart';
 import '../../core/services/antigravity_oauth_service.dart';
 import '../../core/services/direct_provider_service.dart';
 import '../../core/services/local_storage_service.dart';
+import '../../core/services/molly_background_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
@@ -30,6 +31,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _obscureApiKey = true;
   bool _isLoadingDb = true;
   bool _isOAuthLoading = false;
+
+  bool _bgKeepAlive = true;
+  bool _bgNotifications = true;
+  bool _notifyConfirmation = true;
+  bool _notifySuccess = true;
+  bool _notifyFailure = true;
+  bool _isBatteryOptimized = false;
 
   Map<String, int> _dbStats = {
     'sessions': 0,
@@ -74,6 +82,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _activeProvider = _storage.getActiveProvider();
       _apiKeyController.text = _storage.getApiKey(_activeProvider);
       _modelController.text = _storage.getActiveModel();
+      _bgKeepAlive = _storage.getBackgroundKeepAlive();
+      _bgNotifications = _storage.getBackgroundNotifications();
+      _notifyConfirmation = _storage.getNotifyConfirmation();
+      _notifySuccess = _storage.getNotifySuccess();
+      _notifyFailure = _storage.getNotifyFailure();
+    });
+
+    MollyBackgroundService.instance.isBatteryOptimizationIgnored().then((val) {
+      if (mounted) setState(() => _isBatteryOptimized = val);
     });
   }
 
@@ -537,6 +554,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildStandaloneEngineStatusCard(),
           const SizedBox(height: 18),
+          _buildBackgroundTaskCard(),
+          const SizedBox(height: 18),
           _buildGoogleOAuthCard(),
           const SizedBox(height: 18),
           _buildLocalDatabaseCard(),
@@ -546,6 +565,359 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildCrashlyticsCard(),
           const SizedBox(height: 18),
           _buildAboutCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundTaskCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: GlassDecorations.frostedCard(
+        blur: 20,
+        borderColor: AppColors.cyan.withOpacity(0.3),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.cyberGradient,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Background Keep-Alive & Notifikasi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Menjaga task AI tetap berjalan saat HP diminimize',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _bgKeepAlive ? const Color(0x2210B981) : const Color(0x226B7280),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: _bgKeepAlive ? AppColors.green : AppColors.border,
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  _bgKeepAlive ? 'AKTIF' : 'NONAKTIF',
+                  style: TextStyle(
+                    color: _bgKeepAlive ? AppColors.green : AppColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Penjelasan fitur
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.03),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.08)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppColors.cyan, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Saat diaktifkan, Molly mengakuisisi CPU WakeLock & Notifikasi sistem HP sehingga OS tidak menghentikan proses penalaran agen AI saat aplikasi disembunyikan atau layar terkunci.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Switch: Izinkan Background Keep-Alive
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            activeColor: AppColors.cyan,
+            title: const Text(
+              'Izinkan Eksekusi Latar Belakang (Keep-Alive)',
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              'CPU HP tetap aktif mengeksekusi LLM/Tool saat aplikasi diminimize',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+            value: _bgKeepAlive,
+            onChanged: (val) async {
+              HapticFeedback.selectionClick();
+              await _storage.setBackgroundKeepAlive(val);
+              setState(() => _bgKeepAlive = val);
+            },
+          ),
+          const Divider(color: Colors.white12, height: 20),
+
+          // Switch: Notifikasi Status Task HP
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            activeColor: AppColors.cyan,
+            title: const Text(
+              'Notifikasi Status Task HP',
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              'Tampilkan notifikasi di Notification Bar & Heads-up saat task berjalan/selesai',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+            value: _bgNotifications,
+            onChanged: (val) async {
+              HapticFeedback.selectionClick();
+              await _storage.setBackgroundNotifications(val);
+              setState(() => _bgNotifications = val);
+            },
+          ),
+
+          if (_bgNotifications) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.cyan.withOpacity(0.15)),
+              ),
+              child: Column(
+                children: [
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppColors.cyan,
+                    checkColor: Colors.black,
+                    title: const Text(
+                      '⚠️ Notifikasi Konfirmasi Diperlukan',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Alert prioritas tinggi jika agen membutuhkan persetujuan tindakan',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                    ),
+                    value: _notifyConfirmation,
+                    onChanged: (val) async {
+                      if (val == null) return;
+                      await _storage.setNotifyConfirmation(val);
+                      setState(() => _notifyConfirmation = val);
+                    },
+                  ),
+                  const Divider(color: Colors.white10, height: 1),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppColors.green,
+                    checkColor: Colors.black,
+                    title: const Text(
+                      '✅ Notifikasi Task Sukses',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Ringkasan hasil ketika agen menyelesaikan seluruh tahapan tugas',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                    ),
+                    value: _notifySuccess,
+                    onChanged: (val) async {
+                      if (val == null) return;
+                      await _storage.setNotifySuccess(val);
+                      setState(() => _notifySuccess = val);
+                    },
+                  ),
+                  const Divider(color: Colors.white10, height: 1),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppColors.red,
+                    checkColor: Colors.white,
+                    title: const Text(
+                      '❌ Notifikasi Task Gagal',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Pemberitahuan darurat bila terjadi kendala atau kegagalan engine',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                    ),
+                    value: _notifyFailure,
+                    onChanged: (val) async {
+                      if (val == null) return;
+                      await _storage.setNotifyFailure(val);
+                      setState(() => _notifyFailure = val);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+
+          // Android Battery Optimization exemption
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Optimasi Baterai HP (Doze Mode)',
+                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _isBatteryOptimized ? const Color(0x2210B981) : const Color(0x22F59E0B),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _isBatteryOptimized ? 'Bebas Hambatan' : 'Dibatasi Sistem',
+                        style: TextStyle(
+                          color: _isBatteryOptimized ? AppColors.green : AppColors.gold,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Agar sistem operasi Android tidak menghentikan agen AI yang sedang bekerja di latar belakang, izinkan Molly untuk dikecualikan dari pembatasan baterai.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.3),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.08),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    onPressed: () async {
+                      HapticFeedback.mediumImpact();
+                      await MollyBackgroundService.instance.requestBatteryOptimizationExemption();
+                      final updated = await MollyBackgroundService.instance.isBatteryOptimizationIgnored();
+                      if (mounted) setState(() => _isBatteryOptimized = updated);
+                    },
+                    icon: const Icon(Icons.battery_charging_full_rounded, size: 16, color: AppColors.cyan),
+                    label: const Text('Buka Pengaturan Optimasi Baterai HP', style: TextStyle(fontSize: 12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Uji Notifikasi Langsung
+          const Text(
+            'Uji Coba Notifikasi Sistem:',
+            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gold,
+                    side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  onPressed: () async {
+                    HapticFeedback.lightImpact();
+                    await MollyBackgroundService.instance.notifyConfirmationRequired(
+                      agentName: 'Molly Executive',
+                      actionDescription: 'Tindakan eksekusi memerlukan otorisasi pengguna.',
+                    );
+                    if (mounted) MollyToast.showInfo(context, 'Notifikasi konfirmasi dikirim ke notification bar HP.');
+                  },
+                  child: const Text('⚠️ Konfirmasi', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.green,
+                    side: BorderSide(color: AppColors.green.withOpacity(0.5)),
+                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  onPressed: () async {
+                    HapticFeedback.lightImpact();
+                    await MollyBackgroundService.instance.notifyTaskSuccess(
+                      agentName: 'Molly Executive',
+                      summary: 'Pengerjaan 100% tuntas: Analisis dan kode telah selesai.',
+                    );
+                    if (mounted) MollyToast.showSuccess(context, 'Notifikasi sukses dikirim ke notification bar HP.');
+                  },
+                  child: const Text('✅ Sukses', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.red,
+                    side: BorderSide(color: AppColors.red.withOpacity(0.5)),
+                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  onPressed: () async {
+                    HapticFeedback.lightImpact();
+                    await MollyBackgroundService.instance.notifyTaskFailed(
+                      agentName: 'Molly Executive',
+                      errorMessage: 'Terjadi timeout saat menunggu respons engine lokal.',
+                    );
+                    if (mounted) MollyToast.showError(context, 'Notifikasi gagal dikirim ke notification bar HP.');
+                  },
+                  child: const Text('❌ Gagal', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

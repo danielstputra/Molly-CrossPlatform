@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'core/database/molly_local_database.dart';
 import 'core/services/antigravity_oauth_service.dart';
 import 'core/services/local_storage_service.dart';
+import 'core/services/molly_background_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/shell/main_shell_screen.dart';
 import 'firebase_options.dart';
@@ -80,6 +81,12 @@ Future<void> main() async {
     await MollyLocalDatabase.instance.database;
   } catch (e) {
     debugPrint('MollyLocalDatabase init error: $e');
+  }
+
+  try {
+    await MollyBackgroundService.instance.init();
+  } catch (e) {
+    debugPrint('MollyBackgroundService init error: $e');
   }
 
   runApp(const MollyApp());

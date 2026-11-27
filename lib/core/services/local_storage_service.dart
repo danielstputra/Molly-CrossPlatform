@@ -23,6 +23,12 @@ class LocalStorageService {
   static const String _keyGroqKey = 'key_groq';
   static const String _keyOllamaUrl = 'key_ollama_url';
 
+  static const String _keyBackgroundKeepAlive = 'bg_keep_alive';
+  static const String _keyBackgroundNotifications = 'bg_notifications';
+  static const String _keyNotifyConfirmation = 'bg_notify_confirmation';
+  static const String _keyNotifySuccess = 'bg_notify_success';
+  static const String _keyNotifyFailure = 'bg_notify_failure';
+
   SharedPreferences? _prefs;
 
   Future<void> init() async {
@@ -41,6 +47,24 @@ class LocalStorageService {
 
   String getActiveModel() => _prefs?.getString(_keyActiveModel) ?? 'gemini-3.8-flash-medium';
   Future<void> setActiveModel(String model) async => await _prefs?.setString(_keyActiveModel, model);
+
+  // ==========================================
+  // BACKGROUND KEEP-ALIVE & NOTIFICATIONS
+  // ==========================================
+  bool getBackgroundKeepAlive() => _prefs?.getBool(_keyBackgroundKeepAlive) ?? true;
+  Future<void> setBackgroundKeepAlive(bool value) async => await _prefs?.setBool(_keyBackgroundKeepAlive, value);
+
+  bool getBackgroundNotifications() => _prefs?.getBool(_keyBackgroundNotifications) ?? true;
+  Future<void> setBackgroundNotifications(bool value) async => await _prefs?.setBool(_keyBackgroundNotifications, value);
+
+  bool getNotifyConfirmation() => _prefs?.getBool(_keyNotifyConfirmation) ?? true;
+  Future<void> setNotifyConfirmation(bool value) async => await _prefs?.setBool(_keyNotifyConfirmation, value);
+
+  bool getNotifySuccess() => _prefs?.getBool(_keyNotifySuccess) ?? true;
+  Future<void> setNotifySuccess(bool value) async => await _prefs?.setBool(_keyNotifySuccess, value);
+
+  bool getNotifyFailure() => _prefs?.getBool(_keyNotifyFailure) ?? true;
+  Future<void> setNotifyFailure(bool value) async => await _prefs?.setBool(_keyNotifyFailure, value);
 
   String getApiKey(String provider) {
     switch (provider.toLowerCase()) {

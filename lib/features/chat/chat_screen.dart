@@ -11,6 +11,7 @@ import '../../core/models/agent_preset.dart';
 import '../../core/models/chat_message.dart';
 import '../../core/models/session.dart';
 import '../../core/services/local_storage_service.dart';
+import '../../core/services/molly_background_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_app_bar.dart';
 import '../../core/widgets/molly_toast.dart';
@@ -180,6 +181,25 @@ class ChatScreenState extends State<ChatScreen> {
 
     _scrollToBottom();
 
+    // Dapatkan nama agen aktif
+    final agentName = _agents.firstWhere(
+      (a) => a.id == _selectedAgentId,
+      orElse: () => _agents.isNotEmpty ? _agents.first : AgentPreset(
+        id: 'agent-executive',
+        name: 'Molly Executive',
+        role: 'Chief AI Coordinator',
+        systemPrompt: '',
+        capabilities: [],
+        colorHex: '0xFFF59E0B',
+      ),
+    ).name;
+
+    // Aktifkan Background Task & WakeLock agar proses tidak mati saat diminimize
+    unawaited(MollyBackgroundService.instance.startAgentTask(
+      agentName: agentName,
+      prompt: text,
+    ));
+
     // Execute full agent loop & direct LLM streaming on device
     _activeStreamSubscription = _engine
         .executeAgentStream(
@@ -192,6 +212,14 @@ class ChatScreenState extends State<ChatScreen> {
             botMsg.toolCalls.add(tool);
           }
         });
+
+        // Jika HP sedang di background / minimize dan tool dipanggil, kirim notifikasi konfirmasi / aktivitas
+        if (MollyBackgroundService.instance.isAppInBackground) {
+          unawaited(MollyBackgroundService.instance.notifyConfirmationRequired(
+            agentName: agentName,
+            actionDescription: 'Agen sedang mengeksekusi tool [${tool.toolName}]. Ketuk untuk meninjau.',
+          ));
+        }
       },
     )
         .listen(
@@ -208,6 +236,13 @@ class ChatScreenState extends State<ChatScreen> {
         });
         _activeStreamSubscription = null;
         _scrollToBottom();
+
+        // Kirim Notifikasi Sukses ke status bar HP & release WakeLock
+        unawaited(MollyBackgroundService.instance.notifyTaskSuccess(
+          agentName: agentName,
+          summary: botMsg.content,
+        ));
+        unawaited(MollyBackgroundService.instance.stopAgentTask());
       },
       onError: (err) {
         setState(() {
@@ -216,6 +251,13 @@ class ChatScreenState extends State<ChatScreen> {
           _isGenerating = false;
         });
         _activeStreamSubscription = null;
+
+        // Kirim Notifikasi Gagal ke status bar HP & release WakeLock
+        unawaited(MollyBackgroundService.instance.notifyTaskFailed(
+          agentName: agentName,
+          errorMessage: err.toString(),
+        ));
+        unawaited(MollyBackgroundService.instance.stopAgentTask());
       },
     );
   }
@@ -223,6 +265,7 @@ class ChatScreenState extends State<ChatScreen> {
   void _stopGeneration() {
     _activeStreamSubscription?.cancel();
     _activeStreamSubscription = null;
+    unawaited(MollyBackgroundService.instance.stopAgentTask());
     setState(() {
       _isGenerating = false;
       if (_messages.isNotEmpty && _messages.last.isStreaming) {

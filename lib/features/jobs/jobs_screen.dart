@@ -8,6 +8,7 @@ import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
 import '../../core/widgets/molly_toast.dart';
 import '../../core/widgets/molly_text_field.dart';
+import '../../core/services/molly_background_service.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -430,6 +431,12 @@ class _JobsScreenState extends State<JobsScreen> {
   Future<void> _runJob(BackgroundJob job) async {
     final nowStr = '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}:${DateTime.now().second.toString().padLeft(2, '0')}';
     
+    // Aktifkan Background Task & WakeLock agar cron job tetap berjalan saat HP diminimize
+    await MollyBackgroundService.instance.startAgentTask(
+      agentName: 'Cron Engine: ${job.name}',
+      prompt: 'Menjalankan scheduled job [${job.taskType}]',
+    );
+
     // Step 1: Running
     final runningJob = BackgroundJob(
       id: job.id,
@@ -477,6 +484,13 @@ class _JobsScreenState extends State<JobsScreen> {
     );
     await MollyLocalDatabase.instance.saveBackgroundJob(doneJob);
     await _loadData();
+
+    // Notifikasi status selesai ke status bar HP & release WakeLock
+    await MollyBackgroundService.instance.notifyTaskSuccess(
+      agentName: job.name,
+      summary: 'Cron job [${job.taskType}] berhasil diselesaikan dengan progres 100%.',
+    );
+    await MollyBackgroundService.instance.stopAgentTask();
 
     if (mounted) {
       MollyToast.showSuccess(
