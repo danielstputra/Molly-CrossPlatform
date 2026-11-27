@@ -342,6 +342,16 @@ print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
     await db.delete('messages', where: 'session_id = ?', whereArgs: [id]);
   }
 
+  Future<void> updateSessionTitle(String id, String newTitle) async {
+    final db = await database;
+    await db.update(
+      'sessions',
+      {'title': newTitle, 'updated_at': DateTime.now().toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   // ==========================================
   // MESSAGES CRUD (LOCAL SQLITE)
   // ==========================================

@@ -247,6 +247,10 @@ class ChatScreenState extends State<ChatScreen> {
         currentSessionId: _currentSessionId,
         onSelectSession: (id) => _switchSession(id),
         onDeleteSession: (id) => _deleteSession(id),
+        onRenameSession: (id, newTitle) async {
+          await _db.updateSessionTitle(id, newTitle);
+          await _loadLocalDatabaseSessions();
+        },
         onNewSession: _createNewSession,
       ),
       appBar: GlassAppBar(
