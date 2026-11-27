@@ -398,7 +398,7 @@ class ChatScreenState extends State<ChatScreen> {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 1.55,
+              childAspectRatio: 1.38,
             ),
             itemCount: prompts.length,
             itemBuilder: (context, idx) {

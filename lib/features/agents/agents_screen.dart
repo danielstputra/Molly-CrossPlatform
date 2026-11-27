@@ -190,7 +190,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
   Widget _buildAgentsGrid(int cols) {
     if (cols == 1) {
       return ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         itemCount: _filteredAgents.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
@@ -201,7 +201,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: cols,
         crossAxisSpacing: 14,

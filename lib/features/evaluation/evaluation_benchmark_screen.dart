@@ -103,7 +103,7 @@ class _EvaluationBenchmarkScreenState extends State<EvaluationBenchmarkScreen> {
         showBackButton: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -230,57 +230,62 @@ class _MainShellScreenState extends State<MainShellScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: _navMetas.map((meta) {
-                    final isCurrent = _currentIndex == meta.index;
-                    return InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() => _currentIndex = meta.index);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: (MediaQuery.of(context).size.width - 50) / 2,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isCurrent
-                              ? AppColors.gold.withOpacity(0.16)
-                              : AppColors.surfaceElevated,
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final itemWidth = (c.maxWidth - 10) / 2;
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: _navMetas.map((meta) {
+                        final isCurrent = _currentIndex == meta.index;
+                        return InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() => _currentIndex = meta.index);
+                          },
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isCurrent
-                                ? AppColors.gold.withOpacity(0.45)
-                                : AppColors.glassBorder,
-                            width: 0.6,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              isCurrent ? meta.activeIcon : meta.icon,
-                              color: isCurrent ? AppColors.gold : AppColors.textSecondary,
-                              size: 17,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                meta.label,
-                                style: TextStyle(
-                                  color: isCurrent ? Colors.white : AppColors.textSecondary,
-                                  fontSize: 11.5,
-                                  fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                          child: Container(
+                            width: itemWidth,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isCurrent
+                                  ? AppColors.gold.withOpacity(0.16)
+                                  : AppColors.surfaceElevated,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isCurrent
+                                    ? AppColors.gold.withOpacity(0.45)
+                                    : AppColors.glassBorder,
+                                width: 0.6,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isCurrent ? meta.activeIcon : meta.icon,
+                                  color: isCurrent ? AppColors.gold : AppColors.textSecondary,
+                                  size: 17,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    meta.label,
+                                    style: TextStyle(
+                                      color: isCurrent ? Colors.white : AppColors.textSecondary,
+                                      fontSize: 11.5,
+                                      fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
               ],
             ),

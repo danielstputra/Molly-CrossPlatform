@@ -141,7 +141,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

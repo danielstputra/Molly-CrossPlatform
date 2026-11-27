@@ -17,7 +17,7 @@ class CodeStudioScreen extends StatefulWidget {
 }
 
 class _CodeStudioScreenState extends State<CodeStudioScreen> {
-  int _activeTab = 0; // 0 = Perubahan Kode & Diff, 1 = Worktree Terisolasi
+  int _activeTab = 0; // 0 = Perubahan Kode & Diff, 1 = Worktree Terisolasi, 2 = BYOS CLI Agents
   bool _loading = false;
 
   final _db = MollyLocalDatabase.instance;
@@ -30,6 +30,38 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
   final TextEditingController _newBranchController = TextEditingController();
   final List<String> _isolatedBranches = ['main'];
   String _activeBranch = 'main';
+
+  final TextEditingController _cliScriptController = TextEditingController(
+    text: "import math\n\ndef hitung_fibonacci(n):\n    a, b = 0, 1\n    hasil = []\n    for _ in range(n):\n        hasil.append(a)\n        a, b = b, a + b\n    return hasil\n\nprint('=== Eksekusi Engine Python Lokal HP ===')\nprint('Deret Fibonacci (10 elemen):', hitung_fibonacci(10))\nprint('Akar Kuadrat 144:', math.sqrt(144))\n",
+  );
+  String _cliOutput = '';
+  bool _isCliRunning = false;
+  int _cliExecutionTimeMs = 0;
+
+  Future<void> _runCliScript() async {
+    final script = _cliScriptController.text.trim();
+    if (script.isEmpty) return;
+
+    setState(() {
+      _isCliRunning = true;
+      _cliOutput = 'Memulai proses eksekusi di On-Device Python Runner...';
+    });
+    HapticFeedback.mediumImpact();
+
+    final stopwatch = Stopwatch()..start();
+    final result = await MollyCodeRunnerEngine.instance.runPythonCode(script);
+    stopwatch.stop();
+
+    if (mounted) {
+      setState(() {
+        _isCliRunning = false;
+        _cliExecutionTimeMs = stopwatch.elapsedMilliseconds;
+        _cliOutput = result.isSuccess
+            ? (result.stdout.isNotEmpty ? result.stdout : 'Eksekusi selesai tanpa output stdout.')
+            : 'Error Eksekusi:\n${result.stderr}';
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -131,15 +163,22 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                   Expanded(
                     child: _buildTabButton(
                       index: 0,
-                      label: 'Perubahan Kode & Diff (${_localFiles.length})',
+                      label: 'Diff (${_localFiles.length})',
                       icon: CupertinoIcons.doc_plaintext,
                     ),
                   ),
                   Expanded(
                     child: _buildTabButton(
                       index: 1,
-                      label: 'Worktree Terisolasi (${_isolatedBranches.length})',
+                      label: 'Worktree (${_isolatedBranches.length})',
                       icon: CupertinoIcons.arrow_branch,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildTabButton(
+                      index: 2,
+                      label: 'CLI Runner',
+                      icon: CupertinoIcons.terminal_fill,
                     ),
                   ),
                 ],
@@ -153,7 +192,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                 ? const Center(child: CupertinoActivityIndicator(color: AppColors.gold, radius: 14))
                 : _activeTab == 0
                     ? _buildDiffView()
-                    : _buildWorktreesView(),
+                    : (_activeTab == 1 ? _buildWorktreesView() : _buildCliRunnerView()),
           ),
         ],
       ),
@@ -245,7 +284,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
 
         return Column(
           children: [
-            SizedBox(height: 110, child: _buildFileList()),
+            _buildFileList(horizontal: true),
             const Divider(color: AppColors.glassBorder, height: 1),
             Expanded(child: _buildDiffEditor()),
           ],
@@ -254,9 +293,61 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     );
   }
 
-  Widget _buildFileList() {
+  Widget _buildFileList({bool horizontal = false}) {
+    if (horizontal) {
+      return Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.surface.withOpacity(0.4),
+        ),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          itemCount: _localFiles.length,
+          itemBuilder: (context, index) {
+            final file = _localFiles[index];
+            final name = file['file_name']?.toString() ?? 'file';
+            final isSelected = _selectedFileName == name;
+
+            return InkWell(
+              onTap: () => _selectFile(file),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.gold.withOpacity(0.18) : AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected ? AppColors.gold.withOpacity(0.5) : AppColors.glassBorder,
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(CupertinoIcons.doc_text, size: 13, color: isSelected ? AppColors.gold : AppColors.textTertiary),
+                    const SizedBox(width: 6),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 140),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 100),
       itemCount: _localFiles.length,
       itemBuilder: (context, index) {
         final file = _localFiles[index];
@@ -309,7 +400,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 140),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -664,7 +755,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
 
   Widget _buildWorktreesView() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       children: [
         // Create Branch Bar
         Container(
@@ -740,6 +831,146 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
             ),
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildCliRunnerView() {
+    final templates = [
+      {
+        'title': 'Deret Fibonacci',
+        'code': "def fib(n):\n    a, b = 0, 1\n    res = []\n    for _ in range(n):\n        res.append(a)\n        a, b = b, a + b\n    return res\n\nprint('=== Runner Python On-Device ===')\nprint('Fibonacci (10 elemen):', fib(10))\n",
+      },
+      {
+        'title': 'Kalkulasi Matriks & Nilai',
+        'code': "import math\n\ndata = [12, 45, 67, 89, 23, 56]\nmean = sum(data) / len(data)\nvar = sum((x - mean) ** 2 for x in data) / len(data)\nstd_dev = math.sqrt(var)\n\nprint('Data Array:', data)\nprint('Rata-rata (Mean):', mean)\nprint('Standar Deviasi:', round(std_dev, 4))\n",
+      },
+      {
+        'title': 'Status Lingkungan HP',
+        'code': "import sys, platform\n\nprint('On-Device Python Runtime: OK')\nprint('Platform:', platform.system())\nprint('Versi Interpreter:', sys.version.split()[0])\nprint('Byteorder:', sys.byteorder)\n",
+      },
+    ];
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      children: [
+        const Text(
+          'TEMPLAT SKRIP CEPAT',
+          style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8),
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: templates.map((tmpl) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: Text(
+                    tmpl['title'] as String,
+                    style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                  backgroundColor: AppColors.surface,
+                  side: const BorderSide(color: AppColors.glassBorder, width: 0.8),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _cliScriptController.text = tmpl['code'] as String;
+                    });
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: GlassDecorations.frostedCard(blur: 16, borderColor: AppColors.glassBorder),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Editor Skrip Python (On-Device)',
+                    style: TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w700),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _isCliRunning ? null : _runCliScript,
+                    icon: _isCliRunning
+                        ? const CupertinoActivityIndicator(radius: 7, color: Colors.black)
+                        : const Icon(CupertinoIcons.play_circle_fill, size: 14, color: Colors.black),
+                    label: Text(
+                      _isCliRunning ? 'Mengeksekusi...' : 'Jalankan Skrip',
+                      style: const TextStyle(color: Colors.black, fontSize: 11.5, fontWeight: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gold,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _cliScriptController,
+                maxLines: 8,
+                minLines: 4,
+                style: const TextStyle(color: Colors.white, fontSize: 12.5, fontFamily: 'monospace'),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.black.withOpacity(0.4),
+                  hintText: 'Tulis skrip Python Anda di sini...',
+                  hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.glassBorder, width: 0.6),
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_cliOutput.isNotEmpty) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'OUTPUT TERMINAL EKSEKUSI',
+                style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8),
+              ),
+              if (_cliExecutionTimeMs > 0)
+                Text(
+                  'Waktu eksekusi: ${_cliExecutionTimeMs}ms',
+                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D1117),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF30363D), width: 0.8),
+            ),
+            child: SelectableText(
+              _cliOutput,
+              style: const TextStyle(
+                color: Color(0xFF58A6FF),
+                fontSize: 12,
+                fontFamily: 'monospace',
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

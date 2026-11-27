@@ -165,7 +165,7 @@ class _JobsScreenState extends State<JobsScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 140),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
       itemCount: _jobs.length,
       itemBuilder: (context, index) {
         final job = _jobs[index];
@@ -307,7 +307,7 @@ class _JobsScreenState extends State<JobsScreen> {
 
   Widget _buildToolsList() {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 140),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
       itemCount: _tools.length,
       itemBuilder: (context, index) {
         final tool = _tools[index];
