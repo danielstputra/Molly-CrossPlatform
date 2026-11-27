@@ -198,6 +198,16 @@ class MollyLocalDatabase {
         'system_prompt': 'Anda adalah desainer UI/UX kelas dunia berstandar Apple HIG dan Anti-UI Slop.',
         'is_custom': 0,
       },
+      {
+        'id': 'abridge-device-automator',
+        'name': 'aBridge Autonomous Device Controller',
+        'category': 'Device Automation',
+        'description': 'Agen pengendali perangkat Android: membuka aplikasi, gesture ketukan layar, dan otomasi task HP.',
+        'model': 'gpt-4o',
+        'skills_json': jsonEncode(['abridge-device-controller', 'abridge-app-launcher', 'android-device-hub']),
+        'system_prompt': 'Anda adalah agen controller perangkat Android cerdas berbasis aBridge. Anda mampu mengendalikan gesture, membuka aplikasi lokal, dan mengeksekusi otomasi perangkat.',
+        'is_custom': 0,
+      },
     ];
 
     for (final a in initialAgents) {
@@ -232,6 +242,20 @@ class MollyLocalDatabase {
         'name': 'MCP GitHub Cloud Connector',
         'category': 'mcp',
         'description': 'Integrasi repositori GitHub untuk commit, pull requests, dan review diff.',
+        'is_enabled': 1,
+      },
+      {
+        'id': 'abridge-device-controller',
+        'name': 'aBridge Native Device Automation',
+        'category': 'abridge',
+        'description': 'Bridge pengontrol perangkat langsung: gesture sentuh, ketukan layar, dan status hardware.',
+        'is_enabled': 1,
+      },
+      {
+        'id': 'abridge-app-launcher',
+        'name': 'aBridge On-Device App Launcher',
+        'category': 'abridge',
+        'description': 'Membuka dan mengendalikan aplikasi native Android langsung dari instruksi Agent AI.',
         'is_enabled': 1,
       },
     ];

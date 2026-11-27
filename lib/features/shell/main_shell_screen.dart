@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/frosted_bottom_bar.dart';
 import '../agents/agents_screen.dart';
+import '../abridge/abridge_screen.dart';
 import '../chat/chat_screen.dart';
 import '../code_studio/code_studio_screen.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -35,6 +36,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     const KnowledgeScreen(),
     const WorkspaceScreen(),
     const JobsScreen(),
+    const ABridgeScreen(),
     const DashboardScreen(),
     const SettingsScreen(),
   ];
@@ -78,12 +80,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
     ),
     _NavMeta(
       index: 6,
+      label: 'aBridge Controller',
+      icon: CupertinoIcons.device_phone_portrait,
+      activeIcon: CupertinoIcons.device_phone_portrait,
+    ),
+    _NavMeta(
+      index: 7,
       label: 'Telemetri Dashboard',
       icon: CupertinoIcons.speedometer,
       activeIcon: CupertinoIcons.speedometer,
     ),
     _NavMeta(
-      index: 7,
+      index: 8,
       label: 'Pengaturan Engine',
       icon: CupertinoIcons.gear_alt,
       activeIcon: CupertinoIcons.gear_alt_fill,

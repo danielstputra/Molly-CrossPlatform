@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../database/molly_local_database.dart';
 import '../models/chat_message.dart';
+import '../services/abridge_service.dart';
 import '../services/direct_provider_service.dart';
 
 class MollyAgentEngine {
@@ -10,6 +11,7 @@ class MollyAgentEngine {
 
   final _db = MollyLocalDatabase.instance;
   final _directService = DirectProviderService.instance;
+  final _abridge = ABridgeService.instance;
 
   /// Runs the full Agent Loop directly on device:
   /// 1. Reads local session history from on-device SQLite
@@ -104,6 +106,34 @@ class MollyAgentEngine {
         args: {'query': prompt},
         status: 'running',
       );
+    } else if (lower.contains('buka aplikasi') || lower.contains('jalankan aplikasi') || lower.contains('open app')) {
+      return ToolInvocation(
+        id: 'abridge-${DateTime.now().millisecondsSinceEpoch}',
+        toolName: 'abridge_open_app',
+        args: {'prompt': prompt},
+        status: 'running',
+      );
+    } else if (lower.contains('getar') || lower.contains('vibrate') || lower.contains('haptic')) {
+      return ToolInvocation(
+        id: 'abridge-${DateTime.now().millisecondsSinceEpoch}',
+        toolName: 'abridge_haptic',
+        args: {'duration_ms': 120},
+        status: 'running',
+      );
+    } else if (lower.contains('info perangkat') || lower.contains('spesifikasi hp') || lower.contains('device info')) {
+      return ToolInvocation(
+        id: 'abridge-${DateTime.now().millisecondsSinceEpoch}',
+        toolName: 'abridge_device_info',
+        args: {},
+        status: 'running',
+      );
+    } else if (lower.contains('screenshot') || lower.contains('tangkapan layar')) {
+      return ToolInvocation(
+        id: 'abridge-${DateTime.now().millisecondsSinceEpoch}',
+        toolName: 'abridge_screenshot',
+        args: {},
+        status: 'running',
+      );
     }
     return null;
   }
@@ -141,6 +171,53 @@ class MollyAgentEngine {
           toolName: tool.toolName,
           args: tool.args,
           result: 'Ditemukan ${chunks.length} chunk referensi di SQLite lokal HP.',
+          status: 'completed',
+        );
+      } else if (tool.toolName == 'abridge_open_app') {
+        final p = tool.args['prompt']?.toString().toLowerCase() ?? '';
+        String pkg = 'com.android.settings';
+        if (p.contains('kalkulator') || p.contains('calculator')) {
+          pkg = 'com.google.android.calculator';
+        } else if (p.contains('youtube')) {
+          pkg = 'com.google.android.youtube';
+        } else if (p.contains('chrome')) {
+          pkg = 'com.android.chrome';
+        }
+        final ok = await _abridge.openApp(pkg);
+        tool = ToolInvocation(
+          id: tool.id,
+          toolName: tool.toolName,
+          args: {'packageName': pkg},
+          result: ok
+              ? 'aBridge berhasil membuka aplikasi ($pkg) di perangkat.'
+              : 'aBridge mencoba membuka ($pkg), periksa instalasi aplikasi di perangkat.',
+          status: 'completed',
+        );
+      } else if (tool.toolName == 'abridge_haptic') {
+        await _abridge.vibrate(durationMs: 120);
+        tool = ToolInvocation(
+          id: tool.id,
+          toolName: tool.toolName,
+          args: tool.args,
+          result: 'Getaran haptic 120ms berhasil dipicu di perangkat lokal.',
+          status: 'completed',
+        );
+      } else if (tool.toolName == 'abridge_device_info') {
+        final info = await _abridge.getDeviceInfo();
+        tool = ToolInvocation(
+          id: tool.id,
+          toolName: tool.toolName,
+          args: tool.args,
+          result: 'Spesifikasi: Model=${info["model"]}, Pabrikan=${info["manufacturer"]}, Platform=${info["platform"]}, Android Rel=${info["release"]}',
+          status: 'completed',
+        );
+      } else if (tool.toolName == 'abridge_screenshot') {
+        final res = await _abridge.executeMcpTool('abridge_screenshot', {});
+        tool = ToolInvocation(
+          id: tool.id,
+          toolName: tool.toolName,
+          args: tool.args,
+          result: res['message'] ?? 'Viewport screen frame ditangkap.',
           status: 'completed',
         );
       }
