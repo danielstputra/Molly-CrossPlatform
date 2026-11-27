@@ -6,6 +6,8 @@ import '../../core/models/extension_tool.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class JobsScreen extends StatefulWidget {
   const JobsScreen({super.key});
@@ -258,20 +260,27 @@ class _JobsScreenState extends State<JobsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Terakhir: ${job.lastRun ?? "-"}',
-                        style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Berikutnya: ${job.nextRun ?? "-"}',
-                        style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Terakhir: ${job.lastRun ?? "-"}',
+                          style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Berikutnya: ${job.nextRun ?? "-"}',
+                          style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: isRunning ? null : () => _runJob(job),
                     icon: Icon(
@@ -452,12 +461,10 @@ class _JobsScreenState extends State<JobsScreen> {
     await _loadData();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Tugas "${job.name}" selesai dieksekusi.'),
-          backgroundColor: const Color(0xFF10B981),
-          behavior: SnackBarBehavior.floating,
-        ),
+      MollyToast.showSuccess(
+        context,
+        'Tugas "${job.name}" selesai dieksekusi.',
+        title: 'Eksekusi Selesai',
       );
     }
   }
@@ -521,31 +528,22 @@ class _JobsScreenState extends State<JobsScreen> {
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                MollyTextField(
                   controller: nameCtrl,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Tugas (misal: Auto-Clean Temp Files)',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
+                  labelText: 'Nama Tugas',
+                  hintText: 'Misal: Auto-Clean Temp Files',
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                MollyTextField(
                   controller: typeCtrl,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Tipe Tugas (misal: sync, backup, cleanup, eval)',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
+                  labelText: 'Tipe Tugas',
+                  hintText: 'Misal: sync, backup, cleanup, eval',
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                MollyTextField(
                   controller: scheduleCtrl,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Jadwal / Cron Pattern',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
+                  labelText: 'Jadwal / Cron Pattern',
+                  hintText: 'Misal: */15 * * * * atau Setiap 1 jam',
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -567,6 +565,13 @@ class _JobsScreenState extends State<JobsScreen> {
                       await MollyLocalDatabase.instance.saveBackgroundJob(newJob);
                       if (ctx.mounted) Navigator.pop(ctx);
                       await _loadData();
+                      if (mounted) {
+                        MollyToast.showSuccess(
+                          context,
+                          'Jadwal cron "$name" berhasil ditambahkan ke SQLite!',
+                          title: 'Jadwal Ditambahkan',
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.gold,

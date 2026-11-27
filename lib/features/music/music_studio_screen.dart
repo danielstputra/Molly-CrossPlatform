@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class MusicTrack {
   final String id;
@@ -126,12 +128,10 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
 
     _playTrack(newTrack);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Lagu "$title" berhasil dibuat & siap diputar!'),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-      ),
+    MollyToast.showSuccess(
+      context,
+      'Lagu "$title" berhasil dibuat & siap diputar!',
+      title: 'Lagu Dibuat',
     );
   }
 
@@ -333,23 +333,17 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          TextField(
+          MollyTextField(
             controller: _titleController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: const InputDecoration(
-              labelText: 'Judul Lagu (Opsional)',
-              labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-            ),
+            labelText: 'Judul Lagu (Opsional)',
+            hintText: 'Misal: Midnight City Drive',
           ),
           const SizedBox(height: 12),
-          TextField(
+          MollyTextField(
             controller: _promptController,
+            labelText: 'Deskripsi / Ide Lagu',
+            hintText: 'Misal: Sunset drive with retro synth vibes',
             maxLines: 2,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: const InputDecoration(
-              labelText: 'Deskripsi / Ide Lagu (misal: Sunset drive with retro synth vibes)',
-              labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-            ),
           ),
           const SizedBox(height: 14),
           const Text('Pilih Genre & Gaya:', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
@@ -404,14 +398,11 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
               ],
             ),
             const SizedBox(height: 6),
-            TextField(
+            MollyTextField(
               controller: _lyricsController,
+              hintText: 'Tulis lirik kustom atau biarkan kosong untuk di-generate otomatis oleh AI...',
               maxLines: 4,
               style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
-              decoration: const InputDecoration(
-                hintText: 'Tulis lirik kustom atau biarkan kosong untuk di-generate otomatis oleh AI...',
-                hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 11),
-              ),
             ),
           ],
           const SizedBox(height: 18),
@@ -509,9 +500,7 @@ class _MusicStudioScreenState extends State<MusicStudioScreen> {
                 tooltip: 'Salin Lirik',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: track.lyrics));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Lirik berhasil disalin!'), behavior: SnackBarBehavior.floating),
-                  );
+                  MollyToast.showSuccess(context, 'Lirik lagu berhasil disalin!');
                 },
               ),
             ],

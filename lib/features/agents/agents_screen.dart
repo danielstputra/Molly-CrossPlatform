@@ -6,6 +6,8 @@ import '../../core/models/agent_preset.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class AgentsScreen extends StatefulWidget {
   final ValueChanged<AgentPreset>? onSelectAgent;
@@ -256,56 +258,30 @@ class _AgentsScreenState extends State<AgentsScreen> {
                     style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  MollyTextField(
                     controller: nameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      labelText: 'Nama Agen',
-                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                      filled: true,
-                      fillColor: AppColors.surfaceElevated,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    ),
+                    labelText: 'Nama Agen',
+                    hintText: 'Misal: Senior Code Reviewer',
                   ),
                   const SizedBox(height: 10),
-                  TextField(
+                  MollyTextField(
                     controller: descCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    labelText: 'Deskripsi Keahlian',
+                    hintText: 'Misal: Ahli audit performa dan clean architecture',
                     maxLines: 2,
-                    decoration: InputDecoration(
-                      labelText: 'Deskripsi Keahlian',
-                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                      filled: true,
-                      fillColor: AppColors.surfaceElevated,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    ),
                   ),
                   const SizedBox(height: 10),
-                  TextField(
+                  MollyTextField(
                     controller: promptCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    labelText: 'System Prompt Instruksi Agen',
+                    hintText: 'Tuliskan instruksi perilaku agen AI di sini...',
                     maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: 'System Prompt Instruksi Agen',
-                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                      filled: true,
-                      fillColor: AppColors.surfaceElevated,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    ),
                   ),
                   const SizedBox(height: 10),
-                  TextField(
+                  MollyTextField(
                     controller: skillsCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      labelText: 'Daftar Skills (pisahkan dengan koma)',
-                      hintText: 'e.g. anti-ui-slop, debugger, python-testing-patterns',
-                      hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
-                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                      filled: true,
-                      fillColor: AppColors.surfaceElevated,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                    ),
+                    labelText: 'Daftar Skills (pisahkan dengan koma)',
+                    hintText: 'e.g. anti-ui-slop, debugger, python-testing-patterns',
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -338,13 +314,7 @@ class _AgentsScreenState extends State<AgentsScreen> {
                         Navigator.pop(ctx);
                         await _loadAgents();
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Agen "${newAgent.name}" berhasil disimpan di SQLite lokal!'),
-                              backgroundColor: AppColors.surfaceElevated,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          MollyToast.showSuccess(context, 'Agen "${newAgent.name}" berhasil disimpan di SQLite lokal!');
                         }
                       },
                     ),
@@ -402,19 +372,23 @@ class _AgentsScreenState extends State<AgentsScreen> {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceElevated,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              agent.model,
-                              style: const TextStyle(
-                                color: AppColors.gold,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'monospace',
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceElevated,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                agent.model,
+                                style: const TextStyle(
+                                  color: AppColors.gold,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'monospace',
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
@@ -422,6 +396,8 @@ class _AgentsScreenState extends State<AgentsScreen> {
                           Text(
                             agent.category,
                             style: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),

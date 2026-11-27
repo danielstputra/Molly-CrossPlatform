@@ -8,6 +8,8 @@ import '../../core/models/knowledge_base.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class KnowledgeScreen extends StatefulWidget {
   const KnowledgeScreen({super.key});
@@ -329,6 +331,8 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                           fontSize: 10,
                           fontFamily: 'monospace',
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -549,23 +553,17 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                MollyTextField(
                   controller: nameCtrl,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Dokumen (misal: pedoman_arsitektur.md)',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
+                  labelText: 'Nama Dokumen',
+                  hintText: 'Misal: pedoman_arsitektur.md',
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                MollyTextField(
                   controller: contentCtrl,
+                  labelText: 'Isi Dokumen Referensi',
+                  hintText: 'Tempelkan dokumen referensi di sini...',
                   maxLines: 5,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    labelText: 'Isi Dokumen Referensi...',
-                    labelStyle: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  ),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -595,6 +593,11 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                       if (mounted) {
                         Navigator.pop(context);
                         _loadLocalDatasets();
+                        MollyToast.showSuccess(
+                          context,
+                          'Dokumen "$name" berhasil diindeks ke memori RAG HP!',
+                          title: 'Vektor Tersimpan',
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(

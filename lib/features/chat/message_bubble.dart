@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../core/models/chat_message.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/code_block_viewer.dart';
+import '../../core/widgets/molly_toast.dart';
 import '../../core/widgets/tool_call_card.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -121,27 +122,27 @@ class MessageBubble extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: const [
-                      Icon(CupertinoIcons.checkmark_seal_fill, size: 11, color: Color(0xFF10B981)),
-                      SizedBox(width: 4),
-                      Text(
-                        'On-Device SQLite Engine',
-                        style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w500),
-                      ),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: const [
+                        Icon(CupertinoIcons.checkmark_seal_fill, size: 11, color: Color(0xFF10B981)),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'On-Device SQLite Engine',
+                            style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: message.content));
-                      HapticFeedback.lightImpact();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Jawaban Molly berhasil disalin!'),
-                          duration: Duration(milliseconds: 1200),
-                          backgroundColor: AppColors.surfaceElevated,
-                        ),
-                      );
+                      MollyToast.showSuccess(context, 'Jawaban Molly berhasil disalin!');
                     },
                     borderRadius: BorderRadius.circular(6),
                     child: Padding(

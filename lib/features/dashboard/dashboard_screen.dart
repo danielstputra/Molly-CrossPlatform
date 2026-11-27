@@ -239,14 +239,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                m.title,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  m.title,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Icon(m.icon, color: m.glowColor, size: 18),
             ],
           ),
@@ -258,6 +263,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           Text(
             m.sub,
@@ -265,6 +272,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppColors.textTertiary,
               fontSize: 11,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

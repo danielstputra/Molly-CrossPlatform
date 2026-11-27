@@ -5,6 +5,8 @@ import '../../core/services/abridge_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class ABridgeScreen extends StatefulWidget {
   const ABridgeScreen({super.key});
@@ -200,19 +202,19 @@ class _ABridgeScreenState extends State<ABridgeScreen> {
           ),
           const SizedBox(height: 16),
           // Input App
-          TextField(
+          MollyTextField(
             controller: _packageController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              labelText: 'Package Name Target Android',
-              labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-              suffixIcon: IconButton(
-                icon: const Icon(CupertinoIcons.arrow_up_right_circle_fill, color: AppColors.gold, size: 20),
-                onPressed: () {
-                  final pkg = _packageController.text.trim();
-                  if (pkg.isNotEmpty) _abridge.openApp(pkg);
-                },
-              ),
+            labelText: 'Package Name Target Android',
+            hintText: 'com.android.settings',
+            suffixIcon: IconButton(
+              icon: const Icon(CupertinoIcons.arrow_up_right_circle_fill, color: AppColors.gold, size: 20),
+              onPressed: () {
+                final pkg = _packageController.text.trim();
+                if (pkg.isNotEmpty) {
+                  _abridge.openApp(pkg);
+                  MollyToast.showInfo(context, 'Membuka aplikasi target: $pkg');
+                }
+              },
             ),
           ),
           const SizedBox(height: 8),

@@ -10,6 +10,8 @@ import '../../core/services/local_storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -156,23 +158,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(CupertinoIcons.checkmark_seal_fill, color: AppColors.success, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Berhasil terhubung ke akun ${profile.email}! Provider Gemini Antigravity aktif.',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.surfaceElevated,
-            behavior: SnackBarBehavior.floating,
-          ),
+        MollyToast.showSuccess(
+          context,
+          'Berhasil terhubung ke akun ${profile.email}! Provider Gemini Antigravity aktif.',
+          title: 'Google OAuth Terhubung',
         );
       }
     } catch (e) {
@@ -181,12 +170,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       setState(() => _isOAuthLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Otentikasi Google OAuth: $e'),
-            backgroundColor: Colors.red.shade900,
-            behavior: SnackBarBehavior.floating,
-          ),
+        MollyToast.showError(
+          context,
+          'Otentikasi Google OAuth gagal: $e',
+          title: 'Gagal Otentikasi',
         );
       }
     }
@@ -276,10 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: authUrl.toString()));
-                            HapticFeedback.lightImpact();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Tautan login Google berhasil disalin ke clipboard!'), behavior: SnackBarBehavior.floating),
-                            );
+                            MollyToast.showSuccess(context, 'Tautan login Google berhasil disalin!');
                           },
                         ),
                       ),
@@ -360,19 +344,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _oauth.refreshAccessToken();
       setState(() => _isOAuthLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Access Token Google Antigravity berhasil diperbarui!'),
-            backgroundColor: AppColors.surfaceElevated,
-            behavior: SnackBarBehavior.floating,
-          ),
+        MollyToast.showSuccess(
+          context,
+          'Access Token Google Antigravity berhasil diperbarui!',
+          title: 'Token Diperbarui',
         );
       }
     } catch (e) {
       setState(() => _isOAuthLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui token: $e'), backgroundColor: Colors.red.shade900),
+        MollyToast.showError(
+          context,
+          'Gagal memperbarui token: $e',
+          title: 'Pembaruan Gagal',
         );
       }
     }
@@ -383,12 +367,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _oauth.signOut();
     setState(() {});
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Akun Google Antigravity telah diputus.'),
-          backgroundColor: AppColors.surfaceElevated,
-          behavior: SnackBarBehavior.floating,
-        ),
+      MollyToast.showInfo(
+        context,
+        'Akun Google Antigravity telah diputus.',
+        title: 'Akun Diputus',
       );
     }
   }
@@ -410,12 +392,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
 
       if (models.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Tidak ada model ditemukan untuk $_activeProvider. Pastikan API Key valid atau server menyala.'),
-            backgroundColor: Colors.orange.shade900,
-            behavior: SnackBarBehavior.floating,
-          ),
+        MollyToast.showWarning(
+          context,
+          'Tidak ada model ditemukan untuk $_activeProvider. Pastikan API Key valid atau server menyala.',
+          title: 'Model Kosong',
         );
         return;
       }
@@ -498,8 +478,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       setState(() => _isFetchingLiveModels = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menarik model: $e'), backgroundColor: Colors.red.shade900),
+        MollyToast.showError(
+          context,
+          'Gagal menarik model: $e',
+          title: 'Gagal Menarik Model',
         );
       }
     }
@@ -510,12 +492,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _storage.setApiKey(_activeProvider, _apiKeyController.text.trim());
     await _storage.setActiveModel(_modelController.text.trim());
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Konfigurasi provider $_activeProvider berhasil disimpan!'),
-          backgroundColor: AppColors.surfaceElevated,
-          behavior: SnackBarBehavior.floating,
-        ),
+      MollyToast.showSuccess(
+        context,
+        'Konfigurasi provider $_activeProvider berhasil disimpan!',
+        title: 'Pengaturan Disimpan',
       );
     }
   }
@@ -527,18 +507,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await db.execute('VACUUM');
       await _refreshDbStats();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('SQLite VACUUM selesai! Basis data lokal berhasil dioptimasi.'),
-            backgroundColor: AppColors.surfaceElevated,
-            behavior: SnackBarBehavior.floating,
-          ),
+        MollyToast.showSuccess(
+          context,
+          'SQLite VACUUM selesai! Basis data lokal berhasil dioptimasi.',
+          title: 'Database Dioptimasi',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal optimasi database: $e'), backgroundColor: Colors.red.shade900),
+        MollyToast.showError(
+          context,
+          'Gagal optimasi database: $e',
+          title: 'Optimasi Gagal',
         );
       }
     }
@@ -1222,18 +1202,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         reason: 'Pengujian diagnostik telemetri Crashlytics',
                       );
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Log diagnostik non-fatal berhasil dikirim ke Google Crashlytics!'),
-                            backgroundColor: AppColors.surfaceElevated,
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                        MollyToast.showSuccess(
+                          context,
+                          'Log diagnostik non-fatal berhasil dikirim ke Google Crashlytics!',
+                          title: 'Diagnostik Terkirim',
                         );
                       }
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Crashlytics error: $e'), backgroundColor: Colors.red.shade900),
+                        MollyToast.showError(
+                          context,
+                          'Crashlytics error: $e',
+                          title: 'Pengiriman Gagal',
                         );
                       }
                     }

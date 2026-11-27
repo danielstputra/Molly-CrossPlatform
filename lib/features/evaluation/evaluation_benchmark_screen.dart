@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
 
 class BenchmarkItem {
   final String question;
@@ -85,12 +86,10 @@ class _EvaluationBenchmarkScreenState extends State<EvaluationBenchmarkScreen> {
       _isRunningBenchmark = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Evaluasi Benchmark Selesai! Skor RAG Accuracy: 94.8%'),
-        backgroundColor: Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-      ),
+    MollyToast.showSuccess(
+      context,
+      'Evaluasi Benchmark Selesai! Skor RAG Accuracy: 94.8%',
+      title: 'Benchmark Selesai',
     );
   }
 

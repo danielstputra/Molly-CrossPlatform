@@ -8,6 +8,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/code_block_viewer.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class CodeStudioScreen extends StatefulWidget {
   const CodeStudioScreen({super.key});
@@ -113,11 +115,10 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
       _newBranchController.clear();
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Cabang terisolasi "$name" berhasil dibuat di memori HP!'),
-        backgroundColor: AppColors.surfaceElevated,
-      ),
+    MollyToast.showSuccess(
+      context,
+      'Cabang terisolasi "$name" berhasil dibuat di memori HP!',
+      title: 'Worktree Baru',
     );
   }
 
@@ -577,9 +578,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                             : () {
                                 final text = res.stderr.isNotEmpty ? res.stderr : res.stdout;
                                 Clipboard.setData(ClipboardData(text: text));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Output terminal berhasil disalin!'), behavior: SnackBarBehavior.floating),
-                                );
+                                MollyToast.showSuccess(context, 'Output terminal berhasil disalin!');
                               },
                         icon: const Icon(CupertinoIcons.doc_on_doc, size: 14, color: AppColors.gold),
                         label: const Text('Salin Output', style: TextStyle(color: AppColors.gold, fontSize: 12)),
@@ -638,29 +637,19 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                 style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
               ),
               const SizedBox(height: 12),
-              TextField(
+              MollyTextField(
                 controller: nameCtrl,
+                labelText: 'Nama Berkas',
+                hintText: 'Misal: main.dart, service.py, agent.ts',
                 style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  labelText: 'Nama Berkas (misal: main.dart, service.py, agent.ts)',
-                  labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  filled: true,
-                  fillColor: AppColors.surfaceElevated,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                ),
               ),
               const SizedBox(height: 10),
-              TextField(
+              MollyTextField(
                 controller: contentCtrl,
+                labelText: 'Isi Kode Program',
+                hintText: '// Tulis kode program di sini...',
                 maxLines: 8,
                 style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  labelText: 'Isi Kode Program...',
-                  labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  filled: true,
-                  fillColor: AppColors.surfaceElevated,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                ),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -711,17 +700,11 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Edit Berkas: $name', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 14)),
-              const SizedBox(height: 10),
-              TextField(
+              MollyTextField(
                 controller: contentCtrl,
+                labelText: 'Edit Berkas: $name',
                 maxLines: 10,
                 style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.surfaceElevated,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                ),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -916,22 +899,13 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              TextField(
+              MollyTextField(
                 controller: _cliScriptController,
+                labelText: 'Python Script (Molly Code Runner)',
+                hintText: 'Tulis skrip Python Anda di sini...',
                 maxLines: 8,
                 minLines: 4,
                 style: const TextStyle(color: Colors.white, fontSize: 12.5, fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.black.withOpacity(0.4),
-                  hintText: 'Tulis skrip Python Anda di sini...',
-                  hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.glassBorder, width: 0.6),
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
               ),
             ],
           ),

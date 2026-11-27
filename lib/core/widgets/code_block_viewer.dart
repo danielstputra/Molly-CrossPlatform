@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
+import 'molly_toast.dart';
 
 /// Kotak kode bergaya jendela macOS Terminal dengan titik kontrol (Red, Yellow, Green),
 /// label bahasa, dan tombol salin instan satu ketukan.
@@ -65,14 +66,7 @@ class CodeBlockViewer extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     Clipboard.setData(ClipboardData(text: code));
-                    HapticFeedback.lightImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Kode berhasil disalin!"),
-                        duration: Duration(milliseconds: 1200),
-                        backgroundColor: AppColors.bgSurface,
-                      ),
-                    );
+                    MollyToast.showSuccess(context, 'Kode berhasil disalin ke clipboard!');
                   },
                   child: Row(
                     children: const [

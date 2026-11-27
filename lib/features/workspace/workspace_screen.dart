@@ -6,6 +6,8 @@ import '../../core/engine/molly_workspace_engine.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
+import '../../core/widgets/molly_toast.dart';
+import '../../core/widgets/molly_text_field.dart';
 
 class WorkspaceScreen extends StatefulWidget {
   const WorkspaceScreen({super.key});
@@ -307,10 +309,7 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
                       tooltip: 'Salin Isi',
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: content));
-                        HapticFeedback.lightImpact();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Isi berkas berhasil disalin!'), behavior: SnackBarBehavior.floating),
-                        );
+                        MollyToast.showSuccess(context, 'Isi berkas berhasil disalin!');
                       },
                     ),
                     IconButton(icon: const Icon(Icons.close, color: Colors.white, size: 20), onPressed: () => Navigator.pop(ctx)),
@@ -356,15 +355,25 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Edit: $name', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+                  Expanded(
+                    child: Text(
+                      'Edit: $name',
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () async {
                       await _workspace.saveFile(name, editCtrl.text);
                       if (mounted) {
                         Navigator.pop(ctx);
                         _loadLocalFiles();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Perubahan "$name" berhasil disimpan di SQLite lokal!'), behavior: SnackBarBehavior.floating),
+                        MollyToast.showSuccess(
+                          context,
+                          'Perubahan "$name" berhasil disimpan di SQLite lokal!',
+                          title: 'Berkas Disimpan',
                         );
                       }
                     },
