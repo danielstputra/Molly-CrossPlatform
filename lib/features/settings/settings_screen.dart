@@ -575,7 +575,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: GlassDecorations.frostedCard(
         blur: 20,
-        borderColor: AppColors.cyan.withOpacity(0.3),
+        borderColor: AppColors.info.withOpacity(0.3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,10 +585,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: AppColors.cyberGradient,
+                  gradient: AppColors.goldGradient,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.bolt_rounded, color: Colors.black, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -620,14 +620,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: _bgKeepAlive ? const Color(0x2210B981) : const Color(0x226B7280),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: _bgKeepAlive ? AppColors.green : AppColors.border,
+                    color: _bgKeepAlive ? AppColors.success : AppColors.borderGlass,
                     width: 0.8,
                   ),
                 ),
                 child: Text(
                   _bgKeepAlive ? 'AKTIF' : 'NONAKTIF',
                   style: TextStyle(
-                    color: _bgKeepAlive ? AppColors.green : AppColors.textSecondary,
+                    color: _bgKeepAlive ? AppColors.success : AppColors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -647,7 +647,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline_rounded, color: AppColors.cyan, size: 16),
+                const Icon(Icons.info_outline_rounded, color: AppColors.info, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -667,7 +667,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Switch: Izinkan Background Keep-Alive
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            activeColor: AppColors.cyan,
+            activeColor: AppColors.gold,
             title: const Text(
               'Izinkan Eksekusi Latar Belakang (Keep-Alive)',
               style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
@@ -688,7 +688,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Switch: Notifikasi Status Task HP
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            activeColor: AppColors.cyan,
+            activeColor: AppColors.gold,
             title: const Text(
               'Notifikasi Status Task HP',
               style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
@@ -712,13 +712,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.cyan.withOpacity(0.15)),
+                border: Border.all(color: AppColors.info.withOpacity(0.15)),
               ),
               child: Column(
                 children: [
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    activeColor: AppColors.cyan,
+                    activeColor: AppColors.warning,
                     checkColor: Colors.black,
                     title: const Text(
                       '⚠️ Notifikasi Konfirmasi Diperlukan',
@@ -738,7 +738,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(color: Colors.white10, height: 1),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    activeColor: AppColors.green,
+                    activeColor: AppColors.success,
                     checkColor: Colors.black,
                     title: const Text(
                       '✅ Notifikasi Task Sukses',
@@ -758,7 +758,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Divider(color: Colors.white10, height: 1),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    activeColor: AppColors.red,
+                    activeColor: AppColors.error,
                     checkColor: Colors.white,
                     title: const Text(
                       '❌ Notifikasi Task Gagal',
@@ -809,7 +809,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Text(
                         _isBatteryOptimized ? 'Bebas Hambatan' : 'Dibatasi Sistem',
                         style: TextStyle(
-                          color: _isBatteryOptimized ? AppColors.green : AppColors.gold,
+                          color: _isBatteryOptimized ? AppColors.success : AppColors.gold,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -830,7 +830,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       backgroundColor: Colors.white.withOpacity(0.08),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     onPressed: () async {
@@ -839,7 +839,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       final updated = await MollyBackgroundService.instance.isBatteryOptimizationIgnored();
                       if (mounted) setState(() => _isBatteryOptimized = updated);
                     },
-                    icon: const Icon(Icons.battery_charging_full_rounded, size: 16, color: AppColors.cyan),
+                    icon: const Icon(Icons.battery_charging_full_rounded, size: 16, color: AppColors.info),
                     label: const Text('Buka Pengaturan Optimasi Baterai HP', style: TextStyle(fontSize: 12)),
                   ),
                 ),
@@ -860,9 +860,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.gold,
-                    side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
-                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    foregroundColor: AppColors.warning,
+                    side: BorderSide(color: AppColors.warning.withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   onPressed: () async {
@@ -880,9 +880,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.green,
-                    side: BorderSide(color: AppColors.green.withOpacity(0.5)),
-                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    foregroundColor: AppColors.success,
+                    side: BorderSide(color: AppColors.success.withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   onPressed: () async {
@@ -900,9 +900,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.red,
-                    side: BorderSide(color: AppColors.red.withOpacity(0.5)),
-                    shape: RoundedRectangleRadius(borderRadius: BorderRadius.circular(8)),
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(color: AppColors.error.withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   onPressed: () async {

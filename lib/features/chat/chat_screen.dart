@@ -182,17 +182,7 @@ class ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     // Dapatkan nama agen aktif
-    final agentName = _agents.firstWhere(
-      (a) => a.id == _selectedAgentId,
-      orElse: () => _agents.isNotEmpty ? _agents.first : AgentPreset(
-        id: 'agent-executive',
-        name: 'Molly Executive',
-        role: 'Chief AI Coordinator',
-        systemPrompt: '',
-        capabilities: [],
-        colorHex: '0xFFF59E0B',
-      ),
-    ).name;
+    final agentName = _selectedAgentName;
 
     // Aktifkan Background Task & WakeLock agar proses tidak mati saat diminimize
     unawaited(MollyBackgroundService.instance.startAgentTask(
