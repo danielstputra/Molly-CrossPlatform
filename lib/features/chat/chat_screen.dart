@@ -26,10 +26,10 @@ class ChatScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<ChatScreen> createState() => ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class ChatScreenState extends State<ChatScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -45,6 +45,13 @@ class _ChatScreenState extends State<ChatScreen> {
   String _selectedModelName = 'gemini-3.8-flash-medium';
   List<ChatMessage> _messages = [];
   bool _isGenerating = false;
+
+  void selectAgent(AgentPreset agent) {
+    setState(() {
+      _selectedAgentId = agent.id;
+      _selectedAgentName = agent.name;
+    });
+  }
 
   @override
   void initState() {
@@ -457,7 +464,7 @@ class _ChatScreenState extends State<ChatScreen> {
         left: 12,
         right: 12,
         top: 4,
-        bottom: isKeyboardOpen ? 8 : (safeBottom > 0 ? safeBottom + 4 : 12),
+        bottom: isKeyboardOpen ? 8 : (safeBottom > 0 ? safeBottom + 74 : 82),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),

@@ -58,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final int metricCols = width < 640 ? 1 : (width < 1024 ? 2 : 4);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 140),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 110),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -93,7 +93,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildProvidersCard(),
-                const SizedBox(height: 140), // Bottom padding for floating bar
               ],
             ),
           );

@@ -28,31 +28,38 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
   AgentPreset? _selectedAgent;
+  final GlobalKey<ChatScreenState> _chatKey = GlobalKey<ChatScreenState>();
+  late final List<Widget> _screens;
 
-  List<Widget> get _screens => [
-    ChatScreen(
-      key: ValueKey(_selectedAgent?.id ?? 'default-chat'),
-      onOpenModulePicker: _showMobileMoreSheet,
-      initialAgent: _selectedAgent,
-    ),
-    AgentsScreen(
-      onSelectAgent: (agent) {
-        setState(() {
-          _selectedAgent = agent;
-          _currentIndex = 0;
-        });
-      },
-    ),
-    const CodeStudioScreen(),
-    const KnowledgeScreen(),
-    const WorkspaceScreen(),
-    const JobsScreen(),
-    const ABridgeScreen(),
-    const MusicStudioScreen(),
-    const EvaluationBenchmarkScreen(),
-    const DashboardScreen(),
-    const SettingsScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      ChatScreen(
+        key: _chatKey,
+        onOpenModulePicker: _showMobileMoreSheet,
+        initialAgent: _selectedAgent,
+      ),
+      AgentsScreen(
+        onSelectAgent: (agent) {
+          _chatKey.currentState?.selectAgent(agent);
+          setState(() {
+            _selectedAgent = agent;
+            _currentIndex = 0;
+          });
+        },
+      ),
+      const CodeStudioScreen(),
+      const KnowledgeScreen(),
+      const WorkspaceScreen(),
+      const JobsScreen(),
+      const ABridgeScreen(),
+      const MusicStudioScreen(),
+      const EvaluationBenchmarkScreen(),
+      const DashboardScreen(),
+      const SettingsScreen(),
+    ];
+  }
 
   final List<_NavMeta> _navMetas = const [
     _NavMeta(
@@ -155,7 +162,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             index: _currentIndex,
             children: _screens,
           ),
-          bottomNavigationBar: (_currentIndex == 0 || isKeyboardOpen)
+          bottomNavigationBar: isKeyboardOpen
               ? null
               : FrostedBottomBar(
                   currentIndex: _currentIndex >= 4 ? 4 : _currentIndex,

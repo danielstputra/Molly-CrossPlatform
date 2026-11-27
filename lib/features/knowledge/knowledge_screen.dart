@@ -126,7 +126,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                     : _datasets.isEmpty
                         ? _buildEmptyState()
                         : _buildDatasetsGrid(cols),
-                const SizedBox(height: 140),
+                const SizedBox(height: 100),
               ],
             ),
           );
