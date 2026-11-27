@@ -28,6 +28,7 @@ class LocalStorageService {
   static const String _keyNotifyConfirmation = 'bg_notify_confirmation';
   static const String _keyNotifySuccess = 'bg_notify_success';
   static const String _keyNotifyFailure = 'bg_notify_failure';
+  static const String _keyAutoCheckUpdates = 'app_auto_check_updates';
 
   SharedPreferences? _prefs;
 
@@ -65,6 +66,12 @@ class LocalStorageService {
 
   bool getNotifyFailure() => _prefs?.getBool(_keyNotifyFailure) ?? true;
   Future<void> setNotifyFailure(bool value) async => await _prefs?.setBool(_keyNotifyFailure, value);
+
+  // ==========================================
+  // APP UPDATES (GITHUB RELEASES)
+  // ==========================================
+  bool getAutoCheckUpdates() => _prefs?.getBool(_keyAutoCheckUpdates) ?? true;
+  Future<void> setAutoCheckUpdates(bool value) async => await _prefs?.setBool(_keyAutoCheckUpdates, value);
 
   String getApiKey(String provider) {
     switch (provider.toLowerCase()) {

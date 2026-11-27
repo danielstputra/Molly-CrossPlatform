@@ -6,6 +6,9 @@ import '../../core/models/agent_preset.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/frosted_bottom_bar.dart';
+import '../../core/services/app_update_service.dart';
+import '../../core/services/local_storage_service.dart';
+import '../../core/widgets/app_update_dialog.dart';
 import '../agents/agents_screen.dart';
 import '../abridge/abridge_screen.dart';
 import '../chat/chat_screen.dart';
@@ -59,6 +62,22 @@ class _MainShellScreenState extends State<MainShellScreen> {
       const DashboardScreen(),
       const SettingsScreen(),
     ];
+    _checkAppUpdateSilently();
+  }
+
+  void _checkAppUpdateSilently() {
+    Future.delayed(const Duration(seconds: 3), () async {
+      final autoCheck = LocalStorageService.instance.getAutoCheckUpdates();
+      if (!autoCheck) return;
+      try {
+        final result = await AppUpdateService.instance.checkForUpdates(notifyIfAvailable: true);
+        if (result.isUpdateAvailable && result.latestRelease != null && mounted) {
+          AppUpdateDialog.show(context, result.latestRelease!);
+        }
+      } catch (e) {
+        debugPrint('[MainShell] silent update check error: $e');
+      }
+    });
   }
 
   final List<_NavMeta> _navMetas = const [

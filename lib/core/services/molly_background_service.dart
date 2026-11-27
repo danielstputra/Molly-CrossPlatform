@@ -199,6 +199,36 @@ class MollyBackgroundService with WidgetsBindingObserver {
     }
   }
 
+  /// Mengirim notifikasi sistem saat rilis pembaruan baru aplikasi tersedia di GitHub
+  Future<void> notifyAppUpdateAvailable({
+    required String newVersion,
+    required String releaseNotes,
+  }) async {
+    final notificationsEnabled = LocalStorageService.instance.getBackgroundNotifications();
+    if (!notificationsEnabled) return;
+
+    if (kIsWeb) return;
+
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        final cleanNotes = releaseNotes.replaceAll(RegExp(r'[#*`_\[\]]'), '').trim();
+        final shortNotes = cleanNotes.length > 120 ? '${cleanNotes.substring(0, 117)}...' : cleanNotes;
+
+        await _channel.invokeMethod('showNotification', {
+          'type': 'update',
+          'title': '🚀 Pembaruan Molly AI Tersedia ($newVersion)',
+          'body': shortNotes.isNotEmpty
+              ? shortNotes
+              : 'Versi terbaru telah dirilis di GitHub. Buka aplikasi untuk memperbarui.',
+          'id': 2004,
+        });
+        debugPrint('[MollyBackgroundService] Notifikasi update aplikasi dikirim.');
+      }
+    } catch (e) {
+      debugPrint('[MollyBackgroundService] notifyAppUpdateAvailable error: $e');
+    }
+  }
+
   /// Cek status optimasi baterai (Doze mode) pada Android
   Future<bool> isBatteryOptimizationIgnored() async {
     if (kIsWeb || !Platform.isAndroid) return true;

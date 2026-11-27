@@ -8,6 +8,9 @@ import '../../core/services/antigravity_oauth_service.dart';
 import '../../core/services/direct_provider_service.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../core/services/molly_background_service.dart';
+import '../../core/services/app_update_service.dart';
+import '../../core/widgets/app_update_dialog.dart';
+import '../../core/widgets/changelog_modal.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
 import '../../core/widgets/glass_app_bar.dart';
@@ -38,6 +41,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifySuccess = true;
   bool _notifyFailure = true;
   bool _isBatteryOptimized = false;
+  bool _autoCheckUpdates = true;
+  bool _isCheckingUpdates = false;
+  GitHubRelease? _latestRelease;
 
   Map<String, int> _dbStats = {
     'sessions': 0,
@@ -87,6 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _notifyConfirmation = _storage.getNotifyConfirmation();
       _notifySuccess = _storage.getNotifySuccess();
       _notifyFailure = _storage.getNotifyFailure();
+      _autoCheckUpdates = _storage.getAutoCheckUpdates();
     });
 
     MollyBackgroundService.instance.isBatteryOptimizationIgnored().then((val) {
@@ -556,6 +563,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 18),
           _buildBackgroundTaskCard(),
           const SizedBox(height: 18),
+          _buildAppUpdateCard(),
+          const SizedBox(height: 18),
           _buildGoogleOAuthCard(),
           const SizedBox(height: 18),
           _buildLocalDatabaseCard(),
@@ -914,6 +923,240 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (mounted) MollyToast.showError(context, 'Notifikasi gagal dikirim ke notification bar HP.');
                   },
                   child: const Text('❌ Gagal', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppUpdateCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: GlassDecorations.frostedCard(
+        blur: 20,
+        borderColor: AppColors.gold.withOpacity(0.35),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldGradient,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.system_update_rounded, color: Colors.black, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Pembaruan Aplikasi & Changelog',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Sinkronisasi rilis resmi & unduh update dari GitHub',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0x22EAB308),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.gold, width: 0.8),
+                ),
+                child: Text(
+                  _latestRelease != null && _latestRelease!.tagName != AppUpdateService.currentTag
+                      ? 'UPDATE TERSEDIA'
+                      : 'v${AppUpdateService.currentVersion}',
+                  style: const TextStyle(
+                    color: AppColors.gold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Detail versi saat ini
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.25),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Versi Terpasang:',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    Text(
+                      AppUpdateService.currentTag,
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Status Pembaruan:',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          _isCheckingUpdates
+                              ? CupertinoIcons.arrow_clockwise
+                              : (_latestRelease != null && _latestRelease!.tagName != AppUpdateService.currentTag
+                                  ? Icons.downloading_rounded
+                                  : Icons.check_circle_rounded),
+                          size: 13,
+                          color: _isCheckingUpdates
+                              ? AppColors.gold
+                              : (_latestRelease != null && _latestRelease!.tagName != AppUpdateService.currentTag
+                                  ? AppColors.warning
+                                  : AppColors.success),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isCheckingUpdates
+                              ? 'Memeriksa...'
+                              : (_latestRelease != null && _latestRelease!.tagName != AppUpdateService.currentTag
+                                  ? 'Versi Baru Tersedia (${_latestRelease!.tagName})'
+                                  : 'Menggunakan Versi Terkini'),
+                          style: TextStyle(
+                            color: _isCheckingUpdates
+                                ? AppColors.gold
+                                : (_latestRelease != null && _latestRelease!.tagName != AppUpdateService.currentTag
+                                    ? AppColors.warning
+                                    : AppColors.success),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Switch: Periksa Otomatis saat App Dibuka
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            activeColor: AppColors.gold,
+            title: const Text(
+              'Periksa Pembaruan Otomatis',
+              style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              'Deteksi rilis baru di GitHub & tampilkan popup/notifikasi saat aplikasi dibuka',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+            value: _autoCheckUpdates,
+            onChanged: (val) async {
+              HapticFeedback.selectionClick();
+              await _storage.setAutoCheckUpdates(val);
+              setState(() => _autoCheckUpdates = val);
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Action Buttons: Periksa Sekarang & Lihat Changelog
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _isCheckingUpdates
+                      ? null
+                      : () async {
+                          HapticFeedback.mediumImpact();
+                          setState(() => _isCheckingUpdates = true);
+                          MollyToast.showInfo(context, 'Memeriksa rilis terbaru di GitHub...');
+
+                          final result = await AppUpdateService.instance.checkForUpdates(notifyIfAvailable: true);
+                          if (!mounted) return;
+                          setState(() {
+                            _isCheckingUpdates = false;
+                            _latestRelease = result.latestRelease;
+                          });
+
+                          if (result.isUpdateAvailable && result.latestRelease != null) {
+                            AppUpdateDialog.show(context, result.latestRelease!);
+                          } else {
+                            MollyToast.showSuccess(
+                              context,
+                              'Molly sudah versi terkini (${AppUpdateService.currentTag}).',
+                              title: 'Aplikasi Up-To-Date',
+                            );
+                          }
+                        },
+                  icon: _isCheckingUpdates
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        )
+                      : const Icon(Icons.refresh_rounded, size: 16),
+                  label: const Text(
+                    'Periksa Pembaruan',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ChangelogModal.show(context);
+                  },
+                  icon: const Icon(CupertinoIcons.doc_plaintext, size: 15, color: AppColors.gold),
+                  label: const Text(
+                    'Lihat Changelog',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
             ],
