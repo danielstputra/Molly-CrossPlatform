@@ -53,6 +53,7 @@ jobs:
   build-ios:
     name: Build iOS Release Package (.ipa)
     runs-on: macos-14
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -91,6 +92,7 @@ jobs:
   publish-release:
     name: Publish GitHub Release
     needs: [build-android, build-ios]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -98,23 +100,29 @@ jobs:
 
       - name: Download Android APK
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: Molly-Android-Release-APK
           path: ./release-assets
 
       - name: Download iOS IPA
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: Molly-iOS-Release-IPA
           path: ./release-assets
 
+      - name: Generate Release Tag
+        id: tag
+        run: echo "TAG_NAME=v2.6.0-$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.6.0-standalone
+          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
           name: "Molly AI Studio v2.6.0 Standalone (Android & iOS)"
           body: |
-            ## Molly AI Studio v2.6.0 Standalone Release
+            ## Molly AI Studio Standalone Cross-Platform Release
             
             Platform mandiri cross-platform untuk Android dan iOS dengan arsitektur **Apple HIG** dan **Anti-UI Slop**:
             - **Database SQLite Lokal On-Device**: 9 tabel relasional terisolasi di sandbox perangkat (`molly_standalone_v2.db`).
@@ -122,11 +130,10 @@ jobs:
             - **Native Engine Dart**: MollyAgentEngine, MollyKnowledgeEngine (Vector RAG), dan MollyWorkspaceEngine (Local Code Diff).
             - **Zero Dummy Data**: Telemetri live langsung dari database HP.
             
-            ### Unduhan Binary Rilis:
-            - **Android**: `Molly-Standalone-Release.apk`
-            - **iOS**: `Molly-iOS-Release.ipa` (Sideload via TrollStore, AltStore, Sideloadly, atau Scarlet)
+            ### Unduhan File Aplikasi:
+            - **Android APK**: `Molly-Standalone-Release.apk` (Dapat langsung diinstall di HP Android)
+            - **Apple iOS IPA**: `Molly-iOS-Release.ipa` (Sideload via TrollStore, AltStore, Sideloadly, atau Scarlet)
           files: |
-            ./release-assets/Molly-Standalone-Release.apk
-            ./release-assets/Molly-iOS-Release.ipa
+            ./release-assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

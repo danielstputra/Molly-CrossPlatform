@@ -25,7 +25,14 @@ if (flutterVersionName == null) {
 android {
     namespace "com.molly.crossplatform"
     compileSdk 34
-    ndkVersion flutter.ndkVersion
+
+    defaultConfig {
+        applicationId "com.molly.crossplatform"
+        minSdk 24
+        targetSdk 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -36,21 +43,11 @@ android {
         jvmTarget = '17'
     }
 
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
-    defaultConfig {
-        applicationId "com.molly.crossplatform"
-        minSdk 24
-        targetSdk 34
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
-    }
-
     buildTypes {
         release {
             signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }
@@ -58,3 +55,5 @@ android {
 flutter {
     source '../..'
 }
+
+dependencies {}
