@@ -2,6 +2,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/database/molly_local_database.dart';
 import '../../core/services/antigravity_oauth_service.dart';
 import '../../core/services/direct_provider_service.dart';
@@ -130,8 +131,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     HapticFeedback.heavyImpact();
     setState(() => _isOAuthLoading = true);
 
+    bool sheetOpen = false;
     try {
-      final profile = await _oauth.startGoogleOAuth();
+      final profile = await _oauth.startGoogleOAuth(
+        onUrlReady: (url) {
+          if (mounted) {
+            sheetOpen = true;
+            _showOAuthLoginSheet(url);
+          }
+        },
+      );
+
+      if (sheetOpen && mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
       await _storage.setActiveProvider('Gemini Antigravity');
       await _storage.setActiveModel('gemini-3.8-flash-medium');
 
@@ -162,17 +176,181 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } catch (e) {
+      if (sheetOpen && mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
       setState(() => _isOAuthLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Otentikasi Google OAuth Gagal: $e'),
+            content: Text('Otentikasi Google OAuth: $e'),
             backgroundColor: Colors.red.shade900,
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
+  }
+
+  void _showOAuthLoginSheet(Uri authUrl) {
+    final manualCodeCtrl = TextEditingController();
+    bool showManual = false;
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F1117),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 0.8),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.gold.withOpacity(0.15),
+                      border: Border.all(color: AppColors.gold, width: 1.5),
+                    ),
+                    child: const Center(
+                      child: Icon(CupertinoIcons.lock_shield_fill, color: AppColors.gold, size: 26),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Otentikasi Google OAuth Antigravity',
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Browser login telah dibuka secara otomatis. Silakan pilih akun Google Anda untuk mengizinkan akses model Gemini 3.8 & Antigravity.',
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Tombol Aksi Utama
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(CupertinoIcons.arrow_up_right_square, size: 16, color: AppColors.gold),
+                          label: const Text('Buka Ulang di Browser', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.gold.withOpacity(0.5)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () async {
+                            HapticFeedback.lightImpact();
+                            try {
+                              await launchUrl(authUrl, mode: LaunchMode.externalApplication);
+                            } catch (_) {
+                              await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 16, color: Colors.white70),
+                          label: const Text('Salin Tautan Login', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.glassBorder),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: authUrl.toString()));
+                            HapticFeedback.lightImpact();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Tautan login Google berhasil disalin ke clipboard!'), behavior: SnackBarBehavior.floating),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Pilihan Manual Code jika redirect tidak otomatis
+                  if (!showManual)
+                    TextButton(
+                      onPressed: () => setModalState(() => showManual = true),
+                      child: const Text('Ada kendala? Masukkan Kode Otentikasi Manual ▾', style: TextStyle(color: AppColors.gold, fontSize: 11)),
+                    )
+                  else ...[
+                    const Divider(color: AppColors.glassBorder, height: 20),
+                    const Text(
+                      'Tempelkan URL callback atau Kode OAuth dari browser:',
+                      style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: manualCodeCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            decoration: InputDecoration(
+                              hintText: 'Tempel code=... atau URL lengkap di sini',
+                              hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                              filled: true,
+                              fillColor: AppColors.surfaceElevated,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (manualCodeCtrl.text.trim().isNotEmpty) {
+                              _oauth.submitManualCode(manualCodeCtrl.text.trim());
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.gold,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: const Text('Kirim', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () {
+                      _oauth.cancelOAuth();
+                      Navigator.pop(ctx);
+                      setState(() => _isOAuthLoading = false);
+                    },
+                    child: const Text('Batalkan Login', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _refreshGoogleToken() async {

@@ -60,5 +60,10 @@
 	<string>Molly AI memerlukan akses mikrofon untuk input suara interaktif.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Molly AI memerlukan akses galeri foto untuk mengunggah dokumen dan gambar.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+	</array>
 </dict>
 </plist>

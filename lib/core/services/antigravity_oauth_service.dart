@@ -70,6 +70,34 @@ class AntigravityOAuthService {
   bool get isAuthenticated => _currentProfile != null && _currentProfile!.accessToken.isNotEmpty;
 
   HttpServer? _authServer;
+  Completer<String>? _activeCompleter;
+
+  void cancelOAuth() {
+    try {
+      _authServer?.close(force: true);
+    } catch (_) {}
+    if (_activeCompleter != null && !_activeCompleter!.isCompleted) {
+      _activeCompleter!.completeError(Exception('Otentikasi dibatalkan oleh pengguna.'));
+    }
+  }
+
+  void submitManualCode(String rawInput) {
+    String code = rawInput.trim();
+    if (code.contains('code=')) {
+      try {
+        final uri = Uri.parse(code);
+        code = uri.queryParameters['code'] ?? code;
+      } catch (_) {
+        final match = RegExp(r'code=([^&]+)').firstMatch(code);
+        if (match != null) {
+          code = match.group(1) ?? code;
+        }
+      }
+    }
+    if (_activeCompleter != null && !_activeCompleter!.isCompleted) {
+      _activeCompleter!.complete(code);
+    }
+  }
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -91,6 +119,7 @@ class AntigravityOAuthService {
   Future<AntigravityOAuthProfile> startGoogleOAuth({
     String clientId = defaultClientId,
     String clientSecret = defaultClientSecret,
+    void Function(Uri authUrl)? onUrlReady,
   }) async {
     // 1. Start local loopback HTTP server to receive callback
     await _authServer?.close(force: true);
@@ -99,6 +128,7 @@ class AntigravityOAuthService {
     final redirectUri = 'http://127.0.0.1:$port/oauth-callback';
 
     final completer = Completer<String>();
+    _activeCompleter = completer;
 
     _authServer!.listen((HttpRequest request) async {
       final uri = request.uri;
@@ -116,12 +146,13 @@ class AntigravityOAuthService {
             <html>
             <head>
               <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
               <title>Molly • Otentikasi Berhasil</title>
               <style>
                 body {
                   background-color: #0B0D13;
                   color: #E6EDF3;
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                   display: flex;
                   align-items: center;
                   justify-content: center;
@@ -129,12 +160,12 @@ class AntigravityOAuthService {
                   margin: 0;
                 }
                 .card {
-                  background: rgba(18, 22, 34, 0.8);
+                  background: rgba(18, 22, 34, 0.95);
                   border: 1px solid rgba(234, 179, 8, 0.4);
                   border-radius: 20px;
-                  padding: 40px;
+                  padding: 30px;
                   text-align: center;
-                  max-width: 440px;
+                  max-width: 400px;
                   box-shadow: 0 20px 40px rgba(0,0,0,0.6);
                 }
                 .badge {
@@ -146,17 +177,17 @@ class AntigravityOAuthService {
                   letter-spacing: 1.5px;
                   padding: 6px 14px;
                   border-radius: 20px;
-                  margin-bottom: 20px;
+                  margin-bottom: 16px;
                 }
-                h1 { font-size: 24px; margin-bottom: 10px; color: #FFFFFF; }
-                p { font-size: 14px; color: #94A3B8; line-height: 1.5; }
+                h1 { font-size: 20px; margin-bottom: 10px; color: #FFFFFF; }
+                p { font-size: 13px; color: #94A3B8; line-height: 1.5; }
               </style>
             </head>
             <body>
               <div class="card">
                 <div class="badge">ANTIGRAVITY OAUTH</div>
-                <h1>Otentikasi Berhasil</h1>
-                <p>Akun Google Anda berhasil terhubung ke <b>Molly Standalone Studio</b>. Anda dapat menutup tab ini dan kembali ke aplikasi.</p>
+                <h1>Otentikasi Berhasil!</h1>
+                <p>Akun Google Anda berhasil terhubung ke <b>Molly Standalone Studio</b>.<br><br>Silakan kembali ke aplikasi Molly.</p>
               </div>
             </body>
             </html>
@@ -167,9 +198,9 @@ class AntigravityOAuthService {
           request.response.write('''
             <!DOCTYPE html>
             <html>
-            <body style="background:#0B0D13;color:#EF4444;font-family:sans-serif;padding:40px;text-align:center;">
+            <body style="background:#0B0D13;color:#EF4444;font-family:sans-serif;padding:30px;text-align:center;">
               <h2>Otentikasi Dibatalkan</h2>
-              <p>Error: ${error ?? 'Unknown error'}</p>
+              <p>Error: ${error ?? 'Login dibatalkan'}</p>
             </body>
             </html>
           ''');
@@ -190,27 +221,40 @@ class AntigravityOAuthService {
       'include_granted_scopes': 'true',
     });
 
-    // 3. Launch browser
+    // Notify UI immediately so it can show the login sheet and copy link
+    if (onUrlReady != null) {
+      onUrlReady(authUrl);
+    }
+
+    // 3. Launch browser directly without blocking on canLaunchUrl
     try {
-      if (await canLaunchUrl(authUrl)) {
-        await launchUrl(authUrl, mode: LaunchMode.externalApplication);
-      } else {
+      final launched = await launchUrl(
+        authUrl,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('Launch external failed: $e, trying platformDefault');
+      try {
+        await launchUrl(authUrl, mode: LaunchMode.platformDefault);
+      } catch (e2) {
+        debugPrint('Platform default launch also failed: $e2');
         if (Platform.isWindows) {
           await Process.run('cmd', ['/c', 'start', authUrl.toString()]);
         } else if (Platform.isMacOS) {
           await Process.run('open', [authUrl.toString()]);
         }
       }
-    } catch (e) {
-      debugPrint('Failed to open browser: $e');
     }
 
     // 4. Wait for authorization code
     final code = await completer.future.timeout(
-      const Duration(minutes: 3),
+      const Duration(minutes: 5),
       onTimeout: () {
         _authServer?.close(force: true);
-        throw TimeoutException('Batas waktu login Google OAuth telah habis (3 menit).');
+        throw TimeoutException('Batas waktu login Google OAuth telah habis (5 menit).');
       },
     );
 
