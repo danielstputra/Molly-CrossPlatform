@@ -449,10 +449,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'MODEL REAL RESMI: $_activeProvider (${models.length})',
-                    style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                  Expanded(
+                    child: Text(
+                      'MODEL REAL RESMI: $_activeProvider (${models.length})',
+                      style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   const Icon(CupertinoIcons.checkmark_seal_fill, color: Colors.greenAccent, size: 16),
                 ],
               ),
@@ -1254,32 +1259,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: (isAuth ? AppColors.success : AppColors.gold).withOpacity(0.15),
-                      shape: BoxShape.circle,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: (isAuth ? AppColors.success : AppColors.gold).withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        CupertinoIcons.lock_shield_fill,
+                        color: isAuth ? AppColors.success : AppColors.gold,
+                        size: 16,
+                      ),
                     ),
-                    child: Icon(
-                      CupertinoIcons.lock_shield_fill,
-                      color: isAuth ? AppColors.success : AppColors.gold,
-                      size: 16,
+                    const SizedBox(width: 8),
+                    const Flexible(
+                      child: Text(
+                        'GOOGLE OAUTH & GEMINI ANTIGRAVITY',
+                        style: TextStyle(
+                          color: AppColors.gold,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'GOOGLE OAUTH & GEMINI ANTIGRAVITY',
-                    style: TextStyle(
-                      color: AppColors.gold,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -1921,7 +1933,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text('Versi Arsitektur:', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
-              Text('2.6.0 Standalone + Antigravity OAuth', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+              Text('2.7.2 Standalone + Antigravity OAuth', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
             ],
           ),
         ],

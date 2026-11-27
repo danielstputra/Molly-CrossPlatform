@@ -361,6 +361,11 @@ class AntigravityOAuthService {
       picture = userJson['picture'] as String? ?? '';
     }
 
+    String detectedProjectId = '';
+    try {
+      detectedProjectId = await getOrFetchProjectId(accessToken);
+    } catch (_) {}
+
     final profile = AntigravityOAuthProfile(
       email: email,
       name: name,
@@ -368,6 +373,7 @@ class AntigravityOAuthService {
       accessToken: accessToken,
       refreshToken: refreshToken,
       expiryTimestamp: expiryTimestamp,
+      projectId: detectedProjectId,
     );
 
     await _saveProfile(profile);
@@ -411,6 +417,7 @@ class AntigravityOAuthService {
       accessToken: newAccessToken,
       refreshToken: _currentProfile!.refreshToken,
       expiryTimestamp: newExpiry,
+      projectId: _currentProfile!.projectId,
     );
 
     await _saveProfile(updated);
