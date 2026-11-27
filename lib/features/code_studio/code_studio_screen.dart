@@ -98,6 +98,11 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
         showBackButton: false,
         actions: [
           IconButton(
+            icon: const Icon(CupertinoIcons.plus_circle_fill, color: AppColors.gold, size: 22),
+            tooltip: 'Buat Berkas Baru',
+            onPressed: _showCreateFileDialog,
+          ),
+          IconButton(
             icon: _loading
                 ? const CupertinoActivityIndicator(radius: 8, color: AppColors.gold)
                 : const Icon(CupertinoIcons.arrow_clockwise, color: AppColors.gold, size: 18),
@@ -302,14 +307,197 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 100),
-      child: CodeBlockViewer(
-        code: _selectedFileDiff.isNotEmpty ? _selectedFileDiff : '// Tidak ada perbedaan konten.\n',
-        language: 'diff',
-        fileName: '$_selectedFileName (Diff Engine Lokal)',
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 140),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _selectedFileName,
+                style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace'),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.pencil, color: Colors.white, size: 16),
+                    tooltip: 'Edit Berkas',
+                    onPressed: () {
+                      final current = _localFiles.firstWhere((f) => f['file_name'] == _selectedFileName, orElse: () => {});
+                      if (current.isNotEmpty) {
+                        _showEditFileDialog(current);
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 16),
+                    tooltip: 'Hapus Berkas',
+                    onPressed: _deleteCurrentFile,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          CodeBlockViewer(
+            code: _selectedFileDiff.isNotEmpty ? _selectedFileDiff : '// Tidak ada perbedaan konten.\n',
+            language: 'diff',
+            fileName: '$_selectedFileName (Diff Engine Lokal)',
+          ),
+        ],
       ),
     );
+  }
+
+  void _showCreateFileDialog() {
+    final nameCtrl = TextEditingController();
+    final contentCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'BUAT BERKAS KODE BARU DI SQLITE HP',
+                style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                style: const TextStyle(color: Colors.white, fontSize: 13, fontFamily: 'monospace'),
+                decoration: InputDecoration(
+                  labelText: 'Nama Berkas (misal: main.dart, service.py, agent.ts)',
+                  labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                  filled: true,
+                  fillColor: AppColors.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: contentCtrl,
+                maxLines: 8,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+                decoration: InputDecoration(
+                  labelText: 'Isi Kode Program...',
+                  labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                  filled: true,
+                  fillColor: AppColors.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton.icon(
+                  icon: const Icon(CupertinoIcons.checkmark_alt, size: 16, color: Colors.black),
+                  label: const Text('Simpan Berkas ke Workspace', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                  ),
+                  onPressed: () async {
+                    final name = nameCtrl.text.trim();
+                    if (name.isEmpty) return;
+                    await _workspace.createFile(fileName: name, content: contentCtrl.text);
+                    Navigator.pop(ctx);
+                    await _refreshLocalData();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditFileDialog(Map<String, dynamic> file) {
+    final name = file['file_name']?.toString() ?? '';
+    final contentCtrl = TextEditingController(text: file['file_content']?.toString() ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit Berkas: $name', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 10),
+              TextField(
+                controller: contentCtrl,
+                maxLines: 10,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.surfaceElevated,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+                  onPressed: () async {
+                    await _workspace.createFile(fileName: name, content: contentCtrl.text);
+                    Navigator.pop(ctx);
+                    await _refreshLocalData();
+                  },
+                  child: const Text('Simpan Perubahan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteCurrentFile() async {
+    if (_selectedFileName.isEmpty) return;
+    final db = await MollyLocalDatabase.instance.database;
+    await db.delete('workspace_files', where: 'file_name = ?', whereArgs: [_selectedFileName]);
+    _selectedFileName = '';
+    _selectedFileDiff = '';
+    await _refreshLocalData();
   }
 
   Widget _buildWorktreesView() {

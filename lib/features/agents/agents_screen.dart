@@ -75,6 +75,11 @@ class _AgentsScreenState extends State<AgentsScreen> {
         showBackButton: false,
         actions: [
           IconButton(
+            icon: const Icon(CupertinoIcons.plus_circle_fill, color: AppColors.gold, size: 22),
+            tooltip: 'Buat Agen Kustom',
+            onPressed: _showCreateAgentDialog,
+          ),
+          IconButton(
             onPressed: _loading ? null : _loadAgents,
             icon: _loading
                 ? const CupertinoActivityIndicator(color: AppColors.gold)
@@ -183,19 +188,173 @@ class _AgentsScreenState extends State<AgentsScreen> {
   }
 
   Widget _buildAgentsGrid(int cols) {
+    if (cols == 1) {
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+        itemCount: _filteredAgents.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final agent = _filteredAgents[index];
+          return _buildAgentCard(agent);
+        },
+      );
+    }
+
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: cols,
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
-        childAspectRatio: cols == 1 ? 2.1 : 1.65,
+        childAspectRatio: 1.45,
       ),
       itemCount: _filteredAgents.length,
       itemBuilder: (context, index) {
         final agent = _filteredAgents[index];
         return _buildAgentCard(agent);
       },
+    );
+  }
+
+  void _showCreateAgentDialog() {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final promptCtrl = TextEditingController();
+    final skillsCtrl = TextEditingController();
+    String cat = 'Engineering';
+    String model = 'gemini-3.8-flash-medium';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'BUAT AGEN AI KUSTOM BARU',
+                    style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Nama Agen',
+                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      filled: true,
+                      fillColor: AppColors.surfaceElevated,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: descCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: 'Deskripsi Keahlian',
+                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      filled: true,
+                      fillColor: AppColors.surfaceElevated,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: promptCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'System Prompt Instruksi Agen',
+                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      filled: true,
+                      fillColor: AppColors.surfaceElevated,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: skillsCtrl,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Daftar Skills (pisahkan dengan koma)',
+                      hintText: 'e.g. anti-ui-slop, debugger, python-testing-patterns',
+                      hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                      labelStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      filled: true,
+                      fillColor: AppColors.surfaceElevated,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(CupertinoIcons.checkmark_alt, size: 16, color: Colors.black),
+                      label: const Text('Simpan Agen ke SQLite Lokal', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        final name = nameCtrl.text.trim();
+                        if (name.isEmpty) return;
+
+                        final newAgent = AgentPreset(
+                          id: 'agent-${DateTime.now().millisecondsSinceEpoch}',
+                          name: name,
+                          category: cat,
+                          description: descCtrl.text.trim().isNotEmpty ? descCtrl.text.trim() : 'Agen Kustom Mandiri',
+                          model: model,
+                          skills: skillsCtrl.text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList(),
+                          systemPrompt: promptCtrl.text.trim().isNotEmpty ? promptCtrl.text.trim() : 'Anda adalah agen AI kustom.',
+                          isCustom: true,
+                        );
+
+                        await MollyLocalDatabase.instance.saveAgent(newAgent);
+                        Navigator.pop(ctx);
+                        await _loadAgents();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Agen "${newAgent.name}" berhasil disimpan di SQLite lokal!'),
+                              backgroundColor: AppColors.surfaceElevated,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

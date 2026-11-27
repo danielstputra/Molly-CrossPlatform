@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/database/molly_local_database.dart';
 import '../../core/services/antigravity_oauth_service.dart';
+import '../../core/services/direct_provider_service.dart';
 import '../../core/services/local_storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/glass_decorations.dart';
@@ -211,6 +212,118 @@ class _SettingsScreenState extends State<SettingsScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  bool _isFetchingLiveModels = false;
+
+  Future<void> _fetchLiveModelsFromProvider() async {
+    HapticFeedback.lightImpact();
+    setState(() => _isFetchingLiveModels = true);
+
+    try {
+      final models = await DirectProviderService.instance.fetchLiveModels(
+        _activeProvider,
+        apiKey: _apiKeyController.text.trim(),
+      );
+
+      setState(() => _isFetchingLiveModels = false);
+
+      if (!mounted) return;
+
+      if (models.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tidak ada model ditemukan untuk $_activeProvider. Pastikan API Key valid atau server menyala.'),
+            backgroundColor: Colors.orange.shade900,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'MODEL REAL RESMI: $_activeProvider (${models.length})',
+                    style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                  ),
+                  const Icon(CupertinoIcons.checkmark_seal_fill, color: Colors.greenAccent, size: 16),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: models.length,
+                  separatorBuilder: (_, __) => const Divider(color: AppColors.glassBorder, height: 1),
+                  itemBuilder: (ctx, index) {
+                    final m = models[index];
+                    final isCurrent = _modelController.text == m;
+
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        isCurrent ? CupertinoIcons.check_mark_circled_solid : CupertinoIcons.circle,
+                        color: isCurrent ? AppColors.gold : AppColors.textTertiary,
+                        size: 16,
+                      ),
+                      title: Text(
+                        m,
+                        style: TextStyle(
+                          color: isCurrent ? Colors.white : AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          _modelController.text = m;
+                        });
+                        Navigator.pop(ctx);
+                        _saveDirectSettings();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      setState(() => _isFetchingLiveModels = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menarik model: $e'), backgroundColor: Colors.red.shade900),
+        );
+      }
     }
   }
 
@@ -805,11 +918,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Nama Model Default:',
-              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Nama Model Default:',
+                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                TextButton.icon(
+                  onPressed: _isFetchingLiveModels ? null : _fetchLiveModelsFromProvider,
+                  icon: _isFetchingLiveModels
+                      ? const CupertinoActivityIndicator(radius: 6, color: AppColors.gold)
+                      : const Icon(CupertinoIcons.cloud_download, size: 14, color: AppColors.gold),
+                  label: Text(
+                    _isFetchingLiveModels ? 'Menghubungi API...' : 'Tarik Model Real (API)',
+                    style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Container(
               height: 42,
               padding: const EdgeInsets.symmetric(horizontal: 12),

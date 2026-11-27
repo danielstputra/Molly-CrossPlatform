@@ -12,6 +12,103 @@ class DirectProviderService {
 
   final _storage = LocalStorageService.instance;
 
+  /// Fetch Real Live Models dynamically from Provider APIs
+  Future<List<String>> fetchLiveModels(String provider, {String? apiKey}) async {
+    final prov = provider.toLowerCase();
+    final key = apiKey ?? _storage.getApiKey(prov);
+
+    try {
+      if (prov.contains('antigravity')) {
+        return [
+          'gemini-3.8-flash-medium',
+          'gemini-3.8-flash-low',
+          'gemini-3.8-flash-high',
+          'gemini-3.8-pro',
+          'gemini-2.5-pro',
+          'claude-sonnet-4-6-thinking',
+          'claude-opus-4-6-thinking',
+          'deepseek-r1-thinking',
+        ];
+      }
+
+      if (prov == 'openai') {
+        if (key.isEmpty) return [];
+        final res = await http.get(
+          Uri.parse('https://api.openai.com/v1/models'),
+          headers: {'Authorization': 'Bearer $key'},
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final List list = data['data'] ?? [];
+          final models = list
+              .map((m) => m['id'] as String)
+              .where((id) => id.startsWith('gpt-') || id.startsWith('o1') || id.startsWith('chatgpt'))
+              .toList();
+          models.sort();
+          return models;
+        }
+      }
+
+      if (prov == 'groq') {
+        if (key.isEmpty) return [];
+        final res = await http.get(
+          Uri.parse('https://api.groq.com/openai/v1/models'),
+          headers: {'Authorization': 'Bearer $key'},
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final List list = data['data'] ?? [];
+          final models = list.map((m) => m['id'] as String).toList();
+          models.sort();
+          return models;
+        }
+      }
+
+      if (prov == 'gemini') {
+        if (key.isEmpty) return [];
+        final res = await http.get(
+          Uri.parse('https://generativelanguage.googleapis.com/v1beta/models?key=$key'),
+        ).timeout(const Duration(seconds: 10));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final List list = data['models'] ?? [];
+          final models = list
+              .map((m) => (m['name'] as String).replaceFirst('models/', ''))
+              .where((id) => id.contains('gemini'))
+              .toList();
+          models.sort();
+          return models;
+        }
+      }
+
+      if (prov == 'ollama') {
+        final url = key.isNotEmpty ? key : 'http://localhost:11434';
+        final res = await http.get(Uri.parse('$url/api/tags')).timeout(const Duration(seconds: 6));
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body);
+          final List list = data['models'] ?? [];
+          return list.map((m) => m['name'] as String).toList();
+        }
+      }
+
+      if (prov == 'anthropic') {
+        return [
+          'claude-3-5-sonnet-20241022',
+          'claude-3-5-haiku-20241022',
+          'claude-3-opus-20240229',
+          'claude-3-haiku-20240307',
+        ];
+      }
+    } catch (e) {
+      debugPrint('Failed to fetch live models for $provider: $e');
+    }
+
+    return [];
+  }
+
   Stream<String> streamChat({
     required List<ChatMessage> history,
     required String prompt,

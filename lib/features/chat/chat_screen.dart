@@ -89,6 +89,18 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> _deleteSession(String sessionId) async {
+    await _db.deleteSession(sessionId);
+    final list = await _db.getSessions();
+    if (list.isEmpty) {
+      await _loadLocalDatabaseSessions();
+    } else {
+      _sessions = list;
+      await _switchSession(list.first.id);
+    }
+    if (mounted) setState(() {});
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -178,6 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
         sessions: _sessions,
         currentSessionId: _currentSessionId,
         onSelectSession: (id) => _switchSession(id),
+        onDeleteSession: (id) => _deleteSession(id),
         onNewSession: () async {
           final newId = 'session-${DateTime.now().millisecondsSinceEpoch}';
           final newSession = ChatSession(
@@ -211,6 +224,15 @@ class _ChatScreenState extends State<ChatScreen> {
         title: 'Molly Standalone',
         subtitle: 'On-Device SQLite Engine • Mandiri',
         actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 18),
+            tooltip: 'Hapus Pesan Sesi',
+            onPressed: () async {
+              HapticFeedback.mediumImpact();
+              await _db.deleteSession(_currentSessionId);
+              await _loadLocalDatabaseSessions();
+            },
+          ),
           Container(
             margin: const EdgeInsets.only(right: 14),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -243,7 +265,10 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.only(top: 12, bottom: 90),
+              padding: EdgeInsets.only(
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom > 0 ? 16 : 140,
+              ),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 return MessageBubble(message: _messages[index]);
@@ -257,8 +282,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildPromptInputBar() {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = bottomInset > 0;
+
     return Container(
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 85),
+      margin: EdgeInsets.only(
+        left: 14,
+        right: 14,
+        top: 6,
+        bottom: isKeyboardOpen ? 8 : 86,
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(

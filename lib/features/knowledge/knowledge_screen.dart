@@ -125,7 +125,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                     : _datasets.isEmpty
                         ? _buildEmptyState()
                         : _buildDatasetsGrid(cols),
-                const SizedBox(height: 90),
+                const SizedBox(height: 140),
               ],
             ),
           );
@@ -329,6 +329,13 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                   ],
                 ),
               ),
+              IconButton(
+                icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 16),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => _deleteDataset(d.id, d.name),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -492,5 +499,31 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _deleteDataset(String id, String name) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Hapus Dataset', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text('Hapus dataset "$name" beserta semua vektor semantiknya dari SQLite lokal?', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _db.deleteDataset(id);
+      await _loadLocalDatasets();
+    }
   }
 }

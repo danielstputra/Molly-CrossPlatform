@@ -11,6 +11,7 @@ class SessionDrawer extends StatelessWidget {
   final String currentSessionId;
   final Function(String) onSelectSession;
   final VoidCallback onNewSession;
+  final Function(String)? onDeleteSession;
 
   const SessionDrawer({
     super.key,
@@ -18,6 +19,7 @@ class SessionDrawer extends StatelessWidget {
     required this.currentSessionId,
     required this.onSelectSession,
     required this.onNewSession,
+    this.onDeleteSession,
   });
 
   @override
@@ -99,6 +101,15 @@ class SessionDrawer extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                trailing: onDeleteSession != null && sessions.length > 1
+                                    ? IconButton(
+                                        icon: const Icon(CupertinoIcons.trash, size: 14, color: AppColors.textTertiary),
+                                        onPressed: () {
+                                          HapticFeedback.mediumImpact();
+                                          onDeleteSession!(session.id);
+                                        },
+                                      )
+                                    : null,
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   Navigator.pop(context);

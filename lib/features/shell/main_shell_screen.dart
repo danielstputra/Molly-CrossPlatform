@@ -114,6 +114,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         }
 
         // Mobile Layout (iOS & Android) with Floating Glass Bottom Bar
+        final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
         return Scaffold(
           backgroundColor: AppColors.background,
           extendBody: true,
@@ -121,29 +122,29 @@ class _MainShellScreenState extends State<MainShellScreen> {
             index: _currentIndex,
             children: _screens,
           ),
-          bottomNavigationBar: FrostedBottomBar(
-            currentIndex: _currentIndex >= 4 ? 4 : _currentIndex,
-            items: [
-              const FrostedNavItem(index: 0, icon: CupertinoIcons.chat_bubble_2_fill, label: 'Chat'),
-              const FrostedNavItem(index: 1, icon: CupertinoIcons.person_3_fill, label: 'Agen'),
-              const FrostedNavItem(index: 2, icon: CupertinoIcons.hammer_fill, label: 'Code'),
-              const FrostedNavItem(index: 4, icon: CupertinoIcons.folder_fill, label: 'Space'),
-              FrostedNavItem(
-                index: 4,
-                icon: CupertinoIcons.square_grid_2x2_fill,
-                label: _currentIndex > 4 ? _navMetas[_currentIndex].label.split(' ').first : 'Modul',
-              ),
-            ],
-            onTap: (index) {
-              if (index == 4 && _currentIndex < 4) {
-                _showMobileMoreSheet();
-              } else if (index == 4 && _currentIndex >= 4) {
-                _showMobileMoreSheet();
-              } else {
-                setState(() => _currentIndex = index);
-              }
-            },
-          ),
+          bottomNavigationBar: isKeyboardOpen
+              ? null
+              : FrostedBottomBar(
+                  currentIndex: _currentIndex >= 4 ? 4 : _currentIndex,
+                  items: [
+                    const FrostedNavItem(index: 0, icon: CupertinoIcons.chat_bubble_2_fill, label: 'Chat'),
+                    const FrostedNavItem(index: 1, icon: CupertinoIcons.person_3_fill, label: 'Agen'),
+                    const FrostedNavItem(index: 2, icon: CupertinoIcons.hammer_fill, label: 'Code'),
+                    const FrostedNavItem(index: 3, icon: CupertinoIcons.doc_text_fill, label: 'RAG'),
+                    FrostedNavItem(
+                      index: 4,
+                      icon: CupertinoIcons.square_grid_2x2_fill,
+                      label: _currentIndex > 3 ? _navMetas[_currentIndex].label.split(' ').first : 'Modul',
+                    ),
+                  ],
+                  onTap: (index) {
+                    if (index == 4) {
+                      _showMobileMoreSheet();
+                    } else {
+                      setState(() => _currentIndex = index);
+                    }
+                  },
+                ),
         );
       },
     );

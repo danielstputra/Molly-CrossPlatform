@@ -437,6 +437,12 @@ class MollyLocalDatabase {
     );
   }
 
+  Future<void> deleteDataset(String id) async {
+    final db = await database;
+    await db.delete('knowledge_datasets', where: 'id = ?', whereArgs: [id]);
+    await db.delete('knowledge_chunks', where: 'dataset_id = ?', whereArgs: [id]);
+  }
+
   Future<void> insertChunk({
     required String id,
     required String datasetId,
@@ -532,6 +538,11 @@ class MollyLocalDatabase {
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  Future<void> deleteBackgroundJob(String id) async {
+    final db = await database;
+    await db.delete('background_jobs', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<ExtensionTool>> getMcpTools() async {
