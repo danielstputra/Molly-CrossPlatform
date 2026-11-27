@@ -178,7 +178,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
                     child: _buildTabButton(
                       index: 2,
                       label: 'CLI Runner',
-                      icon: CupertinoIcons.terminal,
+                      icon: Icons.terminal,
                     ),
                   ),
                 ],
