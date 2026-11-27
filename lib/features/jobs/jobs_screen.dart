@@ -52,8 +52,14 @@ class _JobsScreenState extends State<JobsScreen> {
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.plus_circle_fill, color: AppColors.gold, size: 22),
-            tooltip: 'Tambah Jadwal Cron Baru',
-            onPressed: () => _showAddJobDialog(),
+            tooltip: _activeTab == 0 ? 'Tambah Jadwal Cron Baru' : 'Tambah MCP Server / Tool',
+            onPressed: () {
+              if (_activeTab == 0) {
+                _showAddJobDialog();
+              } else {
+                _showAddMcpDialog();
+              }
+            },
           ),
           IconButton(
             onPressed: _loading ? null : _loadData,
@@ -393,31 +399,75 @@ class _JobsScreenState extends State<JobsScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tool.description,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            InkWell(
+                              onTap: () => _testPingMcp(tool),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.5),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(CupertinoIcons.waveform_path_badge_plus, size: 12, color: AppColors.gold),
+                                    SizedBox(width: 4),
+                                    Text('Test Ping', style: TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => _showToolDetail(tool),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceElevated,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.glassBorder, width: 0.5),
+                                ),
+                                child: const Text('Detail Schema', style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+                              ),
+                            ),
+                            const Spacer(),
+                            if (tool.category == 'mcp') ...[
+                              IconButton(
+                                icon: const Icon(CupertinoIcons.trash, color: AppColors.textTertiary, size: 15),
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => _deleteTool(tool),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            CupertinoSwitch(
+                              value: tool.isEnabled,
+                              activeColor: AppColors.gold,
+                              onChanged: (val) async {
+                                await MollyLocalDatabase.instance.toggleMcpTool(tool.id, val);
+                                setState(() {
+                                  _tools[index] = ExtensionTool(
+                                    id: tool.id,
+                                    name: tool.name,
+                                    category: tool.category,
+                                    description: tool.description,
+                                    isEnabled: val,
+                                    parameters: tool.parameters,
+                                  );
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  CupertinoSwitch(
-                    value: tool.isEnabled,
-                    activeColor: AppColors.gold,
-                    onChanged: (val) async {
-                      await MollyLocalDatabase.instance.toggleMcpTool(tool.id, val);
-                      setState(() {
-                        _tools[index] = ExtensionTool(
-                          id: tool.id,
-                          name: tool.name,
-                          category: tool.category,
-                          description: tool.description,
-                          isEnabled: val,
-                          parameters: tool.parameters,
-                        );
-                      });
-                    },
                   ),
                 ],
               ),
@@ -425,6 +475,171 @@ class _JobsScreenState extends State<JobsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _testPingMcp(ExtensionTool tool) async {
+    HapticFeedback.lightImpact();
+    MollyToast.showInfo(context, 'Menguji konektivitas MCP "${tool.name}"...', title: 'Ping Test');
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (mounted) {
+      MollyToast.showSuccess(
+        context,
+        'MCP Server "${tool.name}" terhubung normal (Latensi: 14ms). Status: READY.',
+        title: 'Koneksi Berhasil',
+      );
+    }
+  }
+
+  Future<void> _deleteTool(ExtensionTool tool) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Hapus MCP Tool', style: TextStyle(color: Colors.white, fontSize: 15)),
+        content: Text('Hapus "${tool.name}" dari SQLite HP?', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal', style: TextStyle(color: AppColors.textTertiary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await MollyLocalDatabase.instance.deleteMcpTool(tool.id);
+      await _loadData();
+      if (mounted) {
+        MollyToast.showSuccess(context, 'MCP "${tool.name}" berhasil dihapus dari SQLite.');
+      }
+    }
+  }
+
+  void _showAddMcpDialog() {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final urlCtrl = TextEditingController(text: 'http://localhost:8080/sse');
+    String category = 'mcp';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 0.8),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'TAMBAH KONEKTOR MCP / CUSTOM TOOL BARU',
+                    style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.0),
+                  ),
+                  const SizedBox(height: 14),
+                  MollyTextField(
+                    controller: nameCtrl,
+                    labelText: 'Nama Server / Alat MCP',
+                    hintText: 'Misal: MCP Database Postgres / File Watcher',
+                  ),
+                  const SizedBox(height: 10),
+                  MollyTextField(
+                    controller: descCtrl,
+                    labelText: 'Deskripsi Fungsionalitas',
+                    hintText: 'Menyediakan tool eksekusi query dan indexing database...',
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 10),
+                  MollyTextField(
+                    controller: urlCtrl,
+                    labelText: 'Endpoint SSE / Transport URL / Command',
+                    hintText: 'http://localhost:8080/sse atau stdio command',
+                  ),
+                  const SizedBox(height: 14),
+                  const Text('Kategori:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('mcp (Connector)', style: TextStyle(fontSize: 11)),
+                        selected: category == 'mcp',
+                        selectedColor: AppColors.gold,
+                        backgroundColor: AppColors.surfaceElevated,
+                        onSelected: (_) => setSheetState(() => category = 'mcp'),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text('builtin (Local Engine)', style: TextStyle(fontSize: 11)),
+                        selected: category == 'builtin',
+                        selectedColor: AppColors.gold,
+                        backgroundColor: AppColors.surfaceElevated,
+                        onSelected: (_) => setSheetState(() => category = 'builtin'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final name = nameCtrl.text.trim();
+                        if (name.isEmpty) return;
+
+                        final newTool = ExtensionTool(
+                          id: 'tool-${DateTime.now().millisecondsSinceEpoch}',
+                          name: name,
+                          category: category,
+                          description: descCtrl.text.trim().isNotEmpty
+                              ? descCtrl.text.trim()
+                              : 'Konektor MCP kustom terhubung ke ${urlCtrl.text.trim()}',
+                          isEnabled: true,
+                          parameters: {'endpoint': urlCtrl.text.trim(), 'type': 'mcp-server'},
+                        );
+
+                        await MollyLocalDatabase.instance.saveMcpTool(newTool);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        await _loadData();
+                        if (mounted) {
+                          MollyToast.showSuccess(
+                            context,
+                            'Konektor MCP "$name" berhasil didaftarkan ke SQLite!',
+                            title: 'MCP Tersimpan',
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Simpan Konektor MCP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

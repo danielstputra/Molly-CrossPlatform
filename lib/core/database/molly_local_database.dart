@@ -642,6 +642,58 @@ print("Status: Berhasil dieksekusi secara lokal di HP tanpa server!")
     await db.update('mcp_tools', {'is_enabled': enabled ? 1 : 0}, where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> saveMcpTool(ExtensionTool tool) async {
+    final db = await database;
+    await db.insert(
+      'mcp_tools',
+      {
+        'id': tool.id,
+        'name': tool.name,
+        'category': tool.category,
+        'description': tool.description,
+        'is_enabled': tool.isEnabled ? 1 : 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteMcpTool(String id) async {
+    final db = await database;
+    await db.delete('mcp_tools', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<Set<String>> getInstalledSkillIds() async {
+    final raw = await getSetting('installed_skill_ids');
+    if (raw == null || raw.isEmpty) {
+      return {
+        'anti-ui-slop',
+        'tailwind-design-system',
+        'systematic-debugging',
+        'python-testing-patterns',
+        'browser-use-automation',
+        'docker-containerization-pro',
+        'vercel-ai-sdk',
+        'zod-pro',
+      };
+    }
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => e.toString()).toSet();
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> setSkillInstalled(String skillId, bool installed) async {
+    final current = await getInstalledSkillIds();
+    if (installed) {
+      current.add(skillId);
+    } else {
+      current.remove(skillId);
+    }
+    await setSetting('installed_skill_ids', jsonEncode(current.toList()));
+  }
+
   // ==========================================
   // SYSTEM SETTINGS (LOCAL SQLITE)
   // ==========================================

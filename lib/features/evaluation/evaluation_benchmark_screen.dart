@@ -251,7 +251,15 @@ class _EvaluationBenchmarkScreenState extends State<EvaluationBenchmarkScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5)),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(color: AppColors.textTertiary, fontSize: 10.5),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
               Icon(icon, color: color, size: 14),
             ],
           ),

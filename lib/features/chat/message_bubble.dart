@@ -241,6 +241,7 @@ class MessageBubble extends StatelessWidget {
       child: MarkdownBody(
         data: text,
         selectable: true,
+        softLineBreak: true,
         styleSheet: MarkdownStyleSheet(
           p: const TextStyle(color: AppColors.textPrimary, fontSize: 14, height: 1.5),
           h1: const TextStyle(color: AppColors.goldLight, fontSize: 17, fontWeight: FontWeight.bold),
@@ -250,7 +251,21 @@ class MessageBubble extends StatelessWidget {
             color: Color(0xFFFDE047),
             backgroundColor: Color(0x33000000),
             fontFamily: 'monospace',
+            fontSize: 12.5,
           ),
+          codeblockDecoration: BoxDecoration(
+            color: const Color(0xFF0F121A),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.borderGlass, width: 0.8),
+          ),
+          blockquoteDecoration: BoxDecoration(
+            color: AppColors.gold.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(6),
+            border: const Border(left: BorderSide(color: AppColors.gold, width: 3)),
+          ),
+          tableBorder: TableBorder.all(color: AppColors.borderGlass, width: 0.8),
+          tableHead: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 12.5),
+          tableBody: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       ),
     );
