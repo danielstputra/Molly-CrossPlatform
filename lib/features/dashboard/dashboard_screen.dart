@@ -446,13 +446,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(item['icon'] as IconData, size: 13, color: isSel ? AppColors.gold : AppColors.textTertiary),
-                    const SizedBox(width: 6),
-                    Text(
-                      item['label'] as String,
-                      style: TextStyle(
-                        color: isSel ? Colors.white : AppColors.textSecondary,
-                        fontSize: 11.5,
-                        fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        item['label'] as String,
+                        style: TextStyle(
+                          color: isSel ? Colors.white : AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

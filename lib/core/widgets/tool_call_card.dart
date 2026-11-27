@@ -47,19 +47,23 @@ class _ToolCallCardState extends State<ToolCallCard> {
                   else
                     const Icon(CupertinoIcons.check_mark_circled_solid, size: 14, color: AppColors.success),
                   const SizedBox(width: 8),
-                  Text(
+                  const Text(
                     "Alat: ",
                     style: TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
-                  Text(
-                    widget.tool.toolName,
-                    style: const TextStyle(
-                      color: AppColors.goldLight,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Text(
+                      widget.tool.toolName,
+                      style: const TextStyle(
+                        color: AppColors.goldLight,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Icon(
                     _isExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
                     size: 13,

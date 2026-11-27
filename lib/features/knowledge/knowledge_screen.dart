@@ -81,7 +81,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
           final int cols = width < 768 ? 1 : (width < 1200 ? 2 : 3);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 125),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
