@@ -49,7 +49,7 @@ class _CodeStudioScreenState extends State<CodeStudioScreen> {
     HapticFeedback.mediumImpact();
 
     final stopwatch = Stopwatch()..start();
-    final result = await MollyCodeRunnerEngine.instance.runPythonCode(script);
+    final result = await MollyPythonRunner.instance.runScript(script);
     stopwatch.stop();
 
     if (mounted) {
